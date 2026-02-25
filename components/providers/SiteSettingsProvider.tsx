@@ -10,6 +10,8 @@ export type SiteSettings = {
   hours: string
   site_url: string
   gst?: string
+  logo_url: string
+  favicon_url: string
 }
 
 const defaults: SiteSettings = {
@@ -20,6 +22,8 @@ const defaults: SiteSettings = {
   hours: 'Mon-Sat: 9 AM - 7 PM, Sun: 10 AM - 4 PM',
   site_url: 'https://universalbatteries.co.in',
   gst: '',
+  logo_url: '',
+  favicon_url: '/favicon.svg',
 }
 
 const SiteSettingsContext = createContext<SiteSettings>(defaults)

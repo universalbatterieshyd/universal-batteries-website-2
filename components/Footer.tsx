@@ -2,9 +2,11 @@
 
 import { Battery, Facebook, Instagram, Linkedin, Mail, MapPin, Phone } from "lucide-react";
 import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
+import Link from "next/link";
 
 const Footer = () => {
   const settings = useSiteSettings();
+  const hasLogo = Boolean(settings.logo_url?.trim());
   const quickLinks = [
     { label: "Home", href: "#home" },
     { label: "Products", href: "#products" },
@@ -26,13 +28,25 @@ const Footer = () => {
           {/* Brand Section */}
           <div>
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-                <Battery className="w-7 h-7 text-primary-foreground" />
-              </div>
-              <div>
-                <div className="text-xl font-bold">Universal Batteries</div>
-                <div className="text-xs opacity-80">Since 1971</div>
-              </div>
+              {hasLogo ? (
+                <Link href="/#home">
+                  <img
+                    src={settings.logo_url}
+                    alt="Universal Batteries"
+                    className="h-12 w-auto max-w-[160px] object-contain"
+                  />
+                </Link>
+              ) : (
+                <>
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                    <Battery className="w-7 h-7 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold">Universal Batteries</div>
+                    <div className="text-xs opacity-80">Since 1971</div>
+                  </div>
+                </>
+              )}
             </div>
             <p className="text-sm opacity-80 mb-6">
               Your trusted partner for genuine batteries and power solutions across Hyderabad for over 50 years.

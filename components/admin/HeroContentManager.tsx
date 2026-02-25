@@ -92,6 +92,9 @@ export function HeroContentManager({ initialData }: { initialData: HeroContent |
             className="w-full px-4 py-3 border border-gray-300 rounded-lg"
           />
         </div>
+        <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
+          Note: Contact details (WhatsApp, phone) are only shown in the Footer and Contact Us section. Hero CTAs should link to internal pages.
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Primary CTA Text</label>
@@ -100,17 +103,17 @@ export function HeroContentManager({ initialData }: { initialData: HeroContent |
               value={hero.cta_primary_text || ''}
               onChange={(e) => setHero({ ...hero, cta_primary_text: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-              placeholder="WhatsApp Us"
+              placeholder="View Products"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Primary CTA Link (e.g. WhatsApp)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Primary CTA Link (internal)</label>
             <input
               type="text"
               value={hero.cta_primary_link || ''}
               onChange={(e) => setHero({ ...hero, cta_primary_link: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-              placeholder="https://wa.me/919391026003"
+              placeholder="#products or /categories/automotive"
             />
           </div>
         </div>
@@ -122,17 +125,17 @@ export function HeroContentManager({ initialData }: { initialData: HeroContent |
               value={hero.cta_secondary_text || ''}
               onChange={(e) => setHero({ ...hero, cta_secondary_text: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-              placeholder="Call: +91 9391026003"
+              placeholder="Our Services"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Secondary CTA Link (tel:)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Secondary CTA Link (internal)</label>
             <input
               type="text"
               value={hero.cta_secondary_link || ''}
               onChange={(e) => setHero({ ...hero, cta_secondary_link: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-              placeholder="tel:+919391026003"
+              placeholder="#services or /about"
             />
           </div>
         </div>

@@ -9,16 +9,15 @@ export default async function AdminLayout({
   const session = await getSupabaseSession()
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-slate-50/80">
       {session ? (
         <div className="flex">
           <AdminSidebar />
-          <main className="flex-1 p-8 ml-64 min-h-screen">
+          <main className="flex-1 pl-64 min-h-screen">
             {children}
           </main>
         </div>
       ) : (
-        // Login page - no sidebar
         children
       )}
     </div>

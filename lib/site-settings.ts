@@ -8,6 +8,8 @@ const DEFAULTS = {
   gst: '',
   hours: 'Mon-Sat: 9 AM - 7 PM, Sun: 10 AM - 4 PM',
   site_url: process.env.NEXT_PUBLIC_SITE_URL || 'https://universalbatteries.co.in',
+  logo_url: '',
+  favicon_url: '/favicon.svg',
 }
 
 export type SiteSettings = typeof DEFAULTS
@@ -24,5 +26,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     gst: map.gst || DEFAULTS.gst,
     hours: map.hours || DEFAULTS.hours,
     site_url: map.site_url || DEFAULTS.site_url,
+    logo_url: map.logo_url ?? DEFAULTS.logo_url,
+    favicon_url: map.favicon_url || DEFAULTS.favicon_url,
   }
 }

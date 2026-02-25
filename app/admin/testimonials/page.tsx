@@ -1,6 +1,7 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { supabase } from '@/lib/supabase'
 import { TestimonialsManager } from '@/components/admin/TestimonialsManager'
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 import { toCamelCaseArray } from '@/lib/db-utils'
 import type { Testimonial } from '@/types/db'
 
@@ -14,14 +15,16 @@ export default async function TestimonialsPage() {
   const testimonials = toCamelCaseArray<Testimonial>(data || [])
 
   return (
-    <div>
-      <h1 className="text-2xl font-heading font-bold text-gray-900 mb-2">
-        Testimonials
-      </h1>
-      <p className="text-gray-500 mb-8">
-        Manage customer testimonials
-      </p>
-      <TestimonialsManager initialTestimonials={testimonials} />
+    <div className="min-h-screen">
+      <AdminPageHeader
+        title="Testimonials"
+        description="Manage customer testimonials displayed on the site"
+      />
+      <div className="p-8">
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <TestimonialsManager initialTestimonials={testimonials} />
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,44 +1,50 @@
-import { Car, Zap, Server, Sun, Battery, Wrench } from "lucide-react";
+import Link from "next/link";
+import {
+  Car,
+  Zap,
+  Server,
+  Sun,
+  Battery,
+  Wrench,
+  Shield,
+  Truck,
+} from "lucide-react";
 
-const ProductCategories = () => {
-  const categories = [
-    {
-      icon: Car,
-      title: "Automotive Batteries",
-      description: "Premium car, truck, and commercial vehicle batteries",
-      gradient: "from-primary/20 to-primary/5"
-    },
-    {
-      icon: Zap,
-      title: "Inverter Batteries",
-      description: "Long-lasting power backup solutions for homes",
-      gradient: "from-secondary/20 to-secondary/5"
-    },
-    {
-      icon: Server,
-      title: "UPS Systems",
-      description: "Reliable uninterruptible power supply systems",
-      gradient: "from-primary/20 to-primary/5"
-    },
-    {
-      icon: Sun,
-      title: "Solar Solutions",
-      description: "Complete solar systems and battery banks",
-      gradient: "from-secondary/20 to-secondary/5"
-    },
-    {
-      icon: Battery,
-      title: "Lithium & EV",
-      description: "Advanced lithium-ion and electric vehicle batteries",
-      gradient: "from-primary/20 to-primary/5"
-    },
-    {
-      icon: Wrench,
-      title: "Accessories",
-      description: "Chargers, testers, and battery accessories",
-      gradient: "from-secondary/20 to-secondary/5"
-    }
-  ];
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Car,
+  Zap,
+  Server,
+  Sun,
+  Battery,
+  Wrench,
+  Shield,
+  Truck,
+};
+
+const DEFAULT_CATEGORIES = [
+  { slug: "automotive", name: "Automotive Batteries", description: "Premium car, truck, and commercial vehicle batteries", icon: "Car", gradient: "from-primary/20 to-primary/5" },
+  { slug: "inverter", name: "Inverter Batteries", description: "Long-lasting power backup solutions for homes", icon: "Zap", gradient: "from-secondary/20 to-secondary/5" },
+  { slug: "ups", name: "UPS Systems", description: "Reliable uninterruptible power supply systems", icon: "Server", gradient: "from-primary/20 to-primary/5" },
+  { slug: "solar", name: "Solar Solutions", description: "Complete solar systems and battery banks", icon: "Sun", gradient: "from-secondary/20 to-secondary/5" },
+  { slug: "lithium-ev", name: "Lithium & EV", description: "Advanced lithium-ion and electric vehicle batteries", icon: "Battery", gradient: "from-primary/20 to-primary/5" },
+  { slug: "accessories", name: "Accessories", description: "Chargers, testers, and battery accessories", icon: "Wrench", gradient: "from-secondary/20 to-secondary/5" },
+];
+
+type CategoryConfig = {
+  categories?: { id: string; name: string; slug: string; description?: string | null; icon?: string | null }[];
+};
+
+const ProductCategories = ({ config }: { config?: CategoryConfig | null }) => {
+  const dbCategories = config?.categories;
+  const categories = dbCategories?.length
+    ? dbCategories.map((c) => ({
+        slug: c.slug,
+        name: c.name,
+        description: c.description ?? "",
+        icon: c.icon ?? "Battery",
+        gradient: "from-primary/20 to-primary/5",
+      }))
+    : DEFAULT_CATEGORIES;
 
   return (
     <section className="py-20 gradient-subtle" id="products">
@@ -54,21 +60,24 @@ const ProductCategories = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category, index) => {
-            const Icon = category.icon;
+            const Icon = ICON_MAP[category.icon] ?? Battery;
             return (
-              <div
-                key={index}
-                className="glass-card p-8 rounded-2xl hover:scale-105 transition-all duration-300 cursor-pointer group animate-fade-in"
+              <Link
+                key={category.slug}
+                href={`/categories/${category.slug}`}
+                className="glass-card p-8 rounded-2xl hover:scale-105 transition-all duration-300 cursor-pointer group animate-fade-in block"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${category.gradient} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                <div
+                  className={`w-16 h-16 rounded-xl bg-gradient-to-br ${category.gradient} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
+                >
                   <Icon className="w-8 h-8 text-primary" />
                 </div>
-                
+
                 <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
-                  {category.title}
+                  {category.name}
                 </h3>
-                
+
                 <p className="text-muted-foreground">
                   {category.description}
                 </p>
@@ -76,7 +85,7 @@ const ProductCategories = () => {
                 <div className="mt-6 text-primary font-medium group-hover:translate-x-2 transition-transform inline-flex items-center">
                   Explore →
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

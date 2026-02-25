@@ -26,6 +26,16 @@ export interface ProductCategory {
   name: string
   slug: string
   description?: string | null
+  parentId?: string | null
+  order?: number
+  heroHeadline?: string | null
+  heroTagline?: string | null
+  heroImageUrl?: string | null
+  overview?: string | null
+  ctaHeadline?: string | null
+  ctaSubtext?: string | null
+  faqItems?: { question: string; answer: string }[]
+  icon?: string | null
 }
 
 export interface Product {

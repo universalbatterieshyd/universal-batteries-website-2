@@ -21,7 +21,7 @@ export async function PUT(request: NextRequest) {
   }
 
   const body = await request.json()
-  const keys = ['phone', 'whatsapp', 'email', 'address', 'gst', 'hours', 'site_url']
+  const keys = ['phone', 'whatsapp', 'email', 'address', 'gst', 'hours', 'site_url', 'logo_url', 'favicon_url']
 
   for (const key of keys) {
     if (body[key] !== undefined) {

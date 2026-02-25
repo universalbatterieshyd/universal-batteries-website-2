@@ -1,6 +1,8 @@
 import { getSupabaseSession } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import { HeroContentManager } from '@/components/admin/HeroContentManager'
+import { PageBuilderManager } from '@/components/admin/PageBuilderManager'
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 
 export default async function HomepageAdminPage() {
   const session = await getSupabaseSession()
@@ -20,14 +22,25 @@ export default async function HomepageAdminPage() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-heading font-bold text-gray-900 mb-2">
-        Homepage Content
-      </h1>
-      <p className="text-gray-500 mb-8">
-        Edit the hero banner headline, subheadline, and call-to-action buttons
-      </p>
-      <HeroContentManager initialData={hero} />
+    <div className="min-h-screen">
+      <AdminPageHeader
+        title="Homepage"
+        description="Edit the hero banner and drag sections to reorder the homepage"
+      />
+      <div className="p-8">
+        <section className="mb-12">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4">Hero banner</h2>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <HeroContentManager initialData={hero} />
+          </div>
+        </section>
+        <section>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4">Page sections</h2>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <PageBuilderManager />
+          </div>
+        </section>
+      </div>
     </div>
   )
 }

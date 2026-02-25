@@ -141,11 +141,23 @@ export function ProductsManager({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               >
                 <option value="">Select category</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
+                {categories
+                  .filter((c) => !(c as { parentId?: string }).parentId)
+                  .map((parent) => {
+                    const subs = categories.filter(
+                      (c) => (c as { parentId?: string }).parentId === parent.id
+                    )
+                    return (
+                      <optgroup key={parent.id} label={parent.name}>
+                        <option value={parent.id}>{parent.name}</option>
+                        {subs.map((sub) => (
+                          <option key={sub.id} value={sub.id}>
+                            — {sub.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )
+                  })}
               </select>
             </div>
             <div className="flex items-center gap-2">

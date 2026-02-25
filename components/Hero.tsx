@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Phone, MessageCircle } from "lucide-react";
+import { Zap, Package } from "lucide-react";
 import Link from "next/link";
 
 type HeroData = {
@@ -15,20 +15,24 @@ type HeroData = {
 
 const DEFAULT_HEADLINE = "Powering Homes, Businesses & Industries";
 const DEFAULT_SUBHEADLINE = "Your trusted partner for genuine batteries, expert service, and reliable power solutions across Hyderabad for over 50 years.";
-const DEFAULT_CTA_PRIMARY = "WhatsApp Us";
-const DEFAULT_CTA_SECONDARY = "Call: +91 9391026003";
+const DEFAULT_CTA_PRIMARY = "View Products";
+const DEFAULT_CTA_SECONDARY = "Our Services";
+
+// Contact CTAs (WhatsApp, Call) are never shown in the hero — only in footer and Contact Us
+const isContactLink = (url: string | null) =>
+  !url || url.includes("wa.me") || url.startsWith("tel:");
 
 const Hero = ({ heroData }: { heroData?: HeroData }) => {
   const headline = heroData?.headline ?? DEFAULT_HEADLINE;
   const subheadline = heroData?.subheadline ?? DEFAULT_SUBHEADLINE;
-  const ctaPrimaryText = heroData?.cta_primary_text ?? DEFAULT_CTA_PRIMARY;
-  const ctaPrimaryLink = heroData?.cta_primary_link ?? "https://wa.me/919391026003";
-  const ctaSecondaryText = heroData?.cta_secondary_text ?? DEFAULT_CTA_SECONDARY;
-  const ctaSecondaryLink = heroData?.cta_secondary_link ?? "tel:+919391026003";
+  const ctaPrimaryText = isContactLink(heroData?.cta_primary_link ?? null) ? DEFAULT_CTA_PRIMARY : (heroData?.cta_primary_text ?? DEFAULT_CTA_PRIMARY);
+  const ctaPrimaryLink = isContactLink(heroData?.cta_primary_link ?? null) ? "#products" : (heroData?.cta_primary_link ?? "#products");
+  const ctaSecondaryText = isContactLink(heroData?.cta_secondary_link ?? null) ? DEFAULT_CTA_SECONDARY : (heroData?.cta_secondary_text ?? DEFAULT_CTA_SECONDARY);
+  const ctaSecondaryLink = isContactLink(heroData?.cta_secondary_link ?? null) ? "#services" : (heroData?.cta_secondary_link ?? "#services");
   const bgImage = heroData?.background_image_url ?? "/placeholder.svg";
 
   return (
-    <section className="relative min-h-[600px] md:min-h-[700px] flex items-start md:items-center overflow-hidden">
+    <section id="home" className="relative min-h-[600px] md:min-h-[700px] flex items-start md:items-center overflow-hidden">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img 
@@ -63,8 +67,8 @@ const Hero = ({ heroData }: { heroData?: HeroData }) => {
               asChild
               className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
-              <Link href={ctaPrimaryLink} target="_blank" rel="noopener noreferrer">
-                <MessageCircle className="mr-2 h-5 w-5" />
+              <Link href={ctaPrimaryLink}>
+                <Package className="mr-2 h-5 w-5" />
                 {ctaPrimaryText}
               </Link>
             </Button>
@@ -76,7 +80,7 @@ const Hero = ({ heroData }: { heroData?: HeroData }) => {
               className="bg-white/10 hover:bg-white/20 text-primary-foreground border-white/30 backdrop-blur-sm hover:scale-105 transition-all duration-300"
             >
               <Link href={ctaSecondaryLink}>
-                <Phone className="mr-2 h-5 w-5" />
+                <Zap className="mr-2 h-5 w-5" />
                 {ctaSecondaryText}
               </Link>
             </Button>

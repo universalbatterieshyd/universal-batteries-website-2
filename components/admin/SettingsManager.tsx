@@ -15,6 +15,8 @@ export function SettingsManager({
     gst: initialSettings.gst || '',
     hours: initialSettings.hours || '',
     site_url: initialSettings.site_url || '',
+    logo_url: initialSettings.logo_url || '',
+    favicon_url: initialSettings.favicon_url || '/favicon.svg',
   })
   const [saved, setSaved] = useState(false)
 
@@ -34,6 +36,65 @@ export function SettingsManager({
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl">
       <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Logo URL
+          </label>
+          <input
+            type="text"
+            value={settings.logo_url}
+            onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
+            placeholder="/logo.png or https://example.com/logo.png"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Shown in navbar and footer. Leave empty for default battery icon. Use /filename for files in public folder.
+          </p>
+          {settings.logo_url && (
+            <div className="mt-2 w-16 h-16 border border-gray-200 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={settings.logo_url}
+                alt="Logo preview"
+                className="max-w-full max-h-full object-contain"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+              />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Favicon URL
+          </label>
+          <input
+            type="text"
+            value={settings.favicon_url}
+            onChange={(e) => setSettings({ ...settings, favicon_url: e.target.value })}
+            placeholder="/favicon.svg or /favicon.ico"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Browser tab icon. Default: /favicon.svg. Use /filename for files in public folder.
+          </p>
+          {settings.favicon_url && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="w-8 h-8 border border-gray-200 rounded overflow-hidden bg-gray-50 flex items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={settings.favicon_url}
+                  alt="Favicon preview"
+                  className="max-w-full max-h-full object-contain w-6 h-6"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                />
+              </div>
+              <span className="text-xs text-gray-500">Preview</span>
+            </div>
+          )}
+        </div>
+
+        <hr className="border-gray-200" />
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Business Phone

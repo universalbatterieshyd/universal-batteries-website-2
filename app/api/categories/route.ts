@@ -3,11 +3,17 @@ import { supabase } from '@/lib/supabase'
 import { getSupabaseSession } from '@/lib/auth'
 import { toCamelCase } from '@/lib/db-utils'
 
-export async function GET() {
-  const { data, error } = await supabase
-    .from('product_category')
-    .select('*')
-    .order('order', { ascending: true })
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const all = searchParams.get('all') === 'true'
+
+  let query = supabase.from('product_category').select('*').order('order', { ascending: true })
+
+  if (!all) {
+    query = query.is('parent_id', null)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     console.error('Categories fetch error:', error)
@@ -26,7 +32,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { name, slug, description, order } = body
+    const { name, slug, description, order, parentId } = body
 
     if (!name) {
       return NextResponse.json(
@@ -37,14 +43,17 @@ export async function POST(request: NextRequest) {
 
     const categorySlug = slug || name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 
+    const insertData: Record<string, unknown> = {
+      name,
+      slug: categorySlug,
+      description: description || null,
+      order: order ?? 0,
+    }
+    if (parentId) insertData.parent_id = parentId
+
     const { data: category, error } = await supabase
       .from('product_category')
-      .insert({
-        name,
-        slug: categorySlug,
-        description: description || null,
-        order: order ?? 0,
-      })
+      .insert(insertData)
       .select()
       .single()
 

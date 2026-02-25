@@ -1,13 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { MessageCircle, Phone, MapPin, Mail } from "lucide-react";
-import Link from "next/link";
+import { MapPin, Mail, Phone } from "lucide-react";
 import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
 
 const ContactCTA = () => {
   const settings = useSiteSettings();
-  const whatsappUrl = `https://wa.me/${settings.whatsapp.replace(/\D/g, "")}`;
 
   return (
     <section className="py-20 bg-background" id="contact">
@@ -20,23 +17,8 @@ const ContactCTA = () => {
                 Get in Touch with Us Today
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Have questions? Need a quote? Our team is ready to help you find the perfect power solution.
+                Have questions? Need a quote? Our team is ready to help you find the perfect power solution. Use the WhatsApp widget for instant support, or find our contact details below.
               </p>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" asChild className="bg-primary hover:bg-primary/90">
-                  <Link href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                    <MessageCircle className="mr-2 h-5 w-5" />
-                    WhatsApp Us
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link href={`tel:${settings.phone.replace(/\s/g, "")}`}>
-                    <Phone className="mr-2 h-5 w-5" />
-                    Call Now
-                  </Link>
-                </Button>
-              </div>
             </div>
 
             {/* Right Side - Contact Info */}

@@ -1,11 +1,13 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Menu, X, Battery } from "lucide-react";
+import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
+import Link from "next/link";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const settings = useSiteSettings();
+  const hasLogo = Boolean(settings.logo_url?.trim());
 
   const navItems = [
     { label: "Home", href: "#home" },
@@ -20,15 +22,25 @@ const Navbar = () => {
       <div className="container mx-auto px-6 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-              <Battery className="w-7 h-7 text-primary-foreground" />
-            </div>
-            <div>
-              <div className="text-xl font-bold text-foreground">Universal Batteries</div>
-              <div className="text-xs text-muted-foreground">Since 1971</div>
-            </div>
-          </div>
+          <Link href="/#home" className="flex items-center space-x-3">
+            {hasLogo ? (
+              <img
+                src={settings.logo_url}
+                alt="Universal Batteries"
+                className="h-12 w-auto max-w-[160px] object-contain"
+              />
+            ) : (
+              <>
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                  <Battery className="w-7 h-7 text-primary-foreground" />
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-foreground">Universal Batteries</div>
+                  <div className="text-xs text-muted-foreground">Since 1971</div>
+                </div>
+              </>
+            )}
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
@@ -41,9 +53,6 @@ const Navbar = () => {
                 {item.label}
               </a>
             ))}
-            <Button asChild className="bg-primary hover:bg-primary/90">
-              <Link href="/admin">Dealer Login</Link>
-            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -74,9 +83,6 @@ const Navbar = () => {
                   {item.label}
                 </a>
               ))}
-              <Button asChild className="bg-primary hover:bg-primary/90 w-full">
-                <Link href="/admin">Dealer Login</Link>
-              </Button>
             </div>
           </div>
         )}

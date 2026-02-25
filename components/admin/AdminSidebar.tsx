@@ -11,16 +11,19 @@ import {
   Inbox,
   Settings,
   LogOut,
-  Zap,
+  Battery,
   Home,
+  ExternalLink,
+  FolderTree,
 } from 'lucide-react'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/homepage', label: 'Homepage', icon: Home },
+  { href: '/admin/categories', label: 'Categories', icon: FolderTree },
+  { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/branches', label: 'Branches', icon: MapPin },
   { href: '/admin/testimonials', label: 'Testimonials', icon: Star },
-  { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/inquiries', label: 'Inquiries', icon: Inbox },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
@@ -37,51 +40,62 @@ export function AdminSidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-6 border-b border-gray-200">
-        <Link href="/admin" className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-lg bg-energy-red/10 flex items-center justify-center">
-            <Zap className="w-5 h-5 text-energy-red" />
-          </div>
-          <span className="font-heading font-bold text-gray-900">Admin</span>
-        </Link>
+    <aside className="fixed left-0 top-0 z-40 h-screen w-64 flex flex-col bg-slate-900 text-slate-200">
+      {/* Logo */}
+      <div className="flex h-16 items-center gap-3 px-6 border-b border-slate-800">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E31B23]/20">
+          <Battery className="h-5 w-5 text-[#E31B23]" strokeWidth={2} />
+        </div>
+        <div>
+          <span className="font-semibold text-white">Universal Batteries</span>
+          <p className="text-xs text-slate-400">Staff Portal</p>
+        </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-energy-red/10 text-energy-red font-medium'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Icon className="w-5 h-5" />
-              {item.label}
-            </Link>
-          )
-        })}
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto px-4 py-6">
+        <ul className="space-y-0.5">
+          {navItems.map((item) => {
+            const Icon = item.icon
+            const isActive =
+              pathname === item.href ||
+              (item.href !== '/admin' && pathname.startsWith(item.href))
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-[#E31B23]/15 text-[#E31B23]'
+                      : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                  }`}
+                >
+                  <Icon className="h-5 w-5 shrink-0" strokeWidth={1.75} />
+                  {item.label}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
       </nav>
 
-      <div className="p-4 border-t border-gray-200">
+      {/* Footer */}
+      <div className="border-t border-slate-800 p-4 space-y-1">
         <Link
           href="/"
           target="_blank"
-          className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 text-sm mb-2"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
         >
-          View Site →
+          <ExternalLink className="h-4 w-4" />
+          View live site
         </Link>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-600 w-full text-left transition-colors"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-400 hover:bg-slate-800 hover:text-red-400 transition-colors"
         >
-          <LogOut className="w-5 h-5" />
-          Sign Out
+          <LogOut className="h-4 w-4" />
+          Sign out
         </button>
       </div>
     </aside>
