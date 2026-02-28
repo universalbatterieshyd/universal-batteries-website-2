@@ -20,13 +20,13 @@ CREATE TABLE IF NOT EXISTS hero_content (
 
 -- Insert default hero if empty
 INSERT INTO hero_content (headline, subheadline, cta_primary_text, cta_secondary_text, tagline, "order")
-SELECT 'Powering Homes, Businesses & Industries', 'Your trusted partner for genuine batteries, expert service, and reliable power solutions across Hyderabad for over 50 years.', 'WhatsApp Us', 'Call: +91 9391026003', 'Since 1971 • Trusted Power Solutions', 0
+SELECT 'Powering Homes, Businesses & Industries', 'Your trusted partner for genuine batteries, expert service, and reliable power solutions across Hyderabad for over 30 years.', 'WhatsApp Us', 'Call: +91 9391026003', 'Since 1992 • Trusted Power Solutions', 0
 WHERE NOT EXISTS (SELECT 1 FROM hero_content LIMIT 1);
 
 -- Extend site_settings with new keys (upsert on first admin use)
 INSERT INTO site_settings (key, value) VALUES
   ('address', '2-4-78, M.G. Road, Secunderabad - 500003'),
-  ('hero_tagline', 'Since 1971 • Trusted Power Solutions'),
+  ('hero_tagline', 'Since 1992 • Trusted Power Solutions'),
   ('emergency_phone', ''),
   ('logo_url', ''),
   ('favicon_url', ''),

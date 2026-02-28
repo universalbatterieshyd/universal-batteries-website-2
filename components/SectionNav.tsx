@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 const SECTIONS = [
   { id: 'home', label: 'Home' },
   { id: 'products', label: 'Products' },
-  { id: 'services', label: 'Services' },
+  { id: 'about', label: 'About' },
   { id: 'testimonials', label: 'Reviews' },
   { id: 'contact', label: 'Contact' },
 ]
@@ -73,7 +73,7 @@ export function SectionNav() {
             onClick={() => scrollToSection(id)}
             className={`group flex items-center justify-end gap-2 py-2.5 pl-4 pr-2 rounded-l-full transition-all duration-200 ${
               activeId === id
-                ? 'bg-primary/15 text-primary'
+                ? 'bg-white/95 dark:bg-slate-800 text-primary shadow-md'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
             }`}
             aria-label={`Go to ${label}`}
@@ -84,7 +84,7 @@ export function SectionNav() {
             </span>
             <span
               className={`w-2.5 h-2.5 rounded-full shrink-0 transition-all ${
-                activeId === id ? 'bg-primary scale-125' : 'bg-muted-foreground/50 group-hover:bg-foreground/50'
+                activeId === id ? 'bg-primary scale-125 ring-2 ring-white/50' : 'bg-muted-foreground/50 group-hover:bg-foreground/50'
               }`}
               aria-hidden
             />
@@ -105,7 +105,7 @@ export function SectionNav() {
               onClick={() => scrollToSection(id)}
               className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                 activeId === id
-                  ? 'bg-primary text-primary-foreground'
+                  ? 'bg-white dark:bg-slate-800 text-primary shadow-md border border-slate-200 dark:border-slate-700'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
               aria-label={`Go to ${label}`}

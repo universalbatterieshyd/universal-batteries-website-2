@@ -9,6 +9,10 @@ const DEFAULTS = {
   hours: 'Mon-Sat: 9 AM - 7 PM, Sun: 10 AM - 4 PM',
   site_url: process.env.NEXT_PUBLIC_SITE_URL || 'https://universalbatteries.co.in',
   logo_url: '',
+  logo_light_horizontal: '',
+  logo_light_vertical: '',
+  logo_dark_horizontal: '',
+  logo_dark_vertical: '',
   favicon_url: '/favicon.svg',
 }
 
@@ -18,6 +22,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   const { data, error } = await supabase.from('site_settings').select('key, value')
   if (error) return DEFAULTS
   const map = Object.fromEntries((data || []).map((r) => [r.key, r.value]))
+  const logoLightH = map.logo_light_horizontal || map.logo_url || ''
   return {
     phone: map.phone || DEFAULTS.phone,
     whatsapp: map.whatsapp || DEFAULTS.whatsapp,
@@ -26,7 +31,11 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     gst: map.gst || DEFAULTS.gst,
     hours: map.hours || DEFAULTS.hours,
     site_url: map.site_url || DEFAULTS.site_url,
-    logo_url: map.logo_url ?? DEFAULTS.logo_url,
+    logo_url: logoLightH,
+    logo_light_horizontal: logoLightH,
+    logo_light_vertical: map.logo_light_vertical || '',
+    logo_dark_horizontal: map.logo_dark_horizontal || '',
+    logo_dark_vertical: map.logo_dark_vertical || '',
     favicon_url: map.favicon_url || DEFAULTS.favicon_url,
   }
 }

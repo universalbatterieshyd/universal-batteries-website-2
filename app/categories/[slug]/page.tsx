@@ -3,7 +3,8 @@ import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { CategoryCTA } from '@/components/CategoryCTA'
-import { CategoryFAQ } from '@/components/CategoryFAQ'
+import { CategoryFAQWidget } from '@/components/CategoryFAQWidget'
+import { CategoryFinderBanner } from '@/components/CategoryFinderBanner'
 import { supabase } from '@/lib/supabase'
 import { Battery } from 'lucide-react'
 
@@ -46,21 +47,28 @@ export default async function CategoryPage({
 
   const heroHeadline = category.hero_headline || category.name
   const heroTagline = category.hero_tagline || category.description || ''
-  const heroImage = category.hero_image_url || '/placeholder.svg'
+  const hasHeroImage = Boolean(category.hero_image_url?.trim())
   const overview = category.overview || category.description || ''
-  const faqItems = (category.faq_items as { question: string; answer: string }[]) || []
+  const faqItems = (category.faq_items as { question: string; answer: string; moreInfo?: string }[]) || []
+  const categorySlug = category.slug as string
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="pt-20">
-        {/* Hero */}
+        {/* Hero - image only if set, else gradient (no placeholder) */}
         <section className="relative py-24 overflow-hidden">
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${heroImage})` }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 to-slate-900/60" />
+          {hasHeroImage ? (
+            <>
+              <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url(${category.hero_image_url})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 to-slate-900/60" />
+            </>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
+          )}
           <div className="container relative mx-auto px-6 sm:px-6 lg:px-8">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
               {heroHeadline}
@@ -70,6 +78,16 @@ export default async function CategoryPage({
             )}
           </div>
         </section>
+
+        {/* Battery finder banner - Automotive only */}
+        {categorySlug === 'automotive' && (
+          <CategoryFinderBanner type="battery" />
+        )}
+
+        {/* Power backup finder banner - UPS / Inverter */}
+        {(categorySlug === 'ups' || categorySlug === 'inverter') && (
+          <CategoryFinderBanner type="power-backup" />
+        )}
 
         {/* Overview */}
         {overview && (
@@ -106,6 +124,9 @@ export default async function CategoryPage({
           </section>
         )}
 
+        {/* FAQ - Overview, expandable with More Info */}
+        <CategoryFAQWidget items={faqItems} />
+
         {/* Products */}
         <section className="py-20 bg-background">
           <div className="container mx-auto px-6 sm:px-6 lg:px-8">
@@ -117,7 +138,7 @@ export default async function CategoryPage({
                     key={p.id}
                     className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                   >
-                    <div className="aspect-video bg-slate-100 relative">
+                    <div className="aspect-video bg-slate-100 dark:bg-slate-800 relative">
                       {p.image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -126,8 +147,8 @@ export default async function CategoryPage({
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Battery className="h-12 w-12 text-slate-300" />
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700">
+                          <Battery className="h-12 w-12 text-slate-400 dark:text-slate-500" />
                         </div>
                       )}
                     </div>
@@ -153,9 +174,6 @@ export default async function CategoryPage({
           headline={category.cta_headline}
           subtext={category.cta_subtext}
         />
-
-        {/* FAQ - always shown, searchable & expandable */}
-        <CategoryFAQ items={faqItems} />
       </main>
       <Footer />
     </div>

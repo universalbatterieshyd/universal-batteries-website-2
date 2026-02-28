@@ -2,7 +2,7 @@
 
 ## Project info
 
-Marketing website for Universal Batteries – trusted power solutions and battery dealer in Hyderabad since 1971.
+Marketing website for Universal Batteries – trusted power solutions and battery dealer in Hyderabad since 1992.
 
 ## How to run locally
 

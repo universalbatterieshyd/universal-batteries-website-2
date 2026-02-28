@@ -16,6 +16,7 @@ const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero Banner',
   product_categories: 'Product Categories',
   why_choose_us: 'Why Choose Us',
+  about_us: 'About Us',
   testimonials: 'Testimonials',
   contact_cta: 'Contact CTA',
   features_grid: 'Features Grid',

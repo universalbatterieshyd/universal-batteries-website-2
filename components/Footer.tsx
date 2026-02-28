@@ -6,12 +6,14 @@ import Link from "next/link";
 
 const Footer = () => {
   const settings = useSiteSettings();
-  const hasLogo = Boolean(settings.logo_url?.trim());
+  const logoUrl = settings.logo_dark_horizontal || settings.logo_url;
+  const hasLogo = Boolean(logoUrl?.trim());
   const quickLinks = [
-    { label: "Home", href: "#home" },
-    { label: "Products", href: "#products" },
-    { label: "Services", href: "#services" },
-    { label: "About Us", href: "#about" }
+    { label: "Home", href: "/#home" },
+    { label: "Products", href: "/#products" },
+    { label: "Solutions", href: "/solutions" },
+    { label: "Resources", href: "/resources" },
+    { label: "About Us", href: "/#about" }
   ];
 
   const productCategories = [
@@ -31,7 +33,7 @@ const Footer = () => {
               {hasLogo ? (
                 <Link href="/#home">
                   <img
-                    src={settings.logo_url}
+                    src={logoUrl}
                     alt="Universal Batteries"
                     className="h-12 w-auto max-w-[160px] object-contain"
                   />
@@ -43,13 +45,13 @@ const Footer = () => {
                   </div>
                   <div>
                     <div className="text-xl font-bold">Universal Batteries</div>
-                    <div className="text-xs opacity-80">Since 1971</div>
+                    <div className="text-xs opacity-80">Since 1992</div>
                   </div>
                 </>
               )}
             </div>
             <p className="text-sm opacity-80 mb-6">
-              Your trusted partner for genuine batteries and power solutions across Hyderabad for over 50 years.
+              Your trusted partner for genuine batteries and power solutions across Hyderabad for over 30 years.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="w-10 h-10 rounded-full bg-background/10 hover:bg-background/20 flex items-center justify-center transition-colors">

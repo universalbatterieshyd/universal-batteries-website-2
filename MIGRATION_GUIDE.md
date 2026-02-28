@@ -503,7 +503,7 @@ Keep primary nav focused on: Home, Solutions, Services, About, Branches, Contact
 
 ### 10.4 Content Hierarchy
 
-1. **Lead with trust and expertise** – Hero: “Powering Homes, Businesses & Industries”, trust badges, legacy (“Since 1971”).
+1. **Lead with trust and expertise** – Hero: “Powering Homes, Businesses & Industries”, trust badges, legacy (“Since 1992”).
 2. **Solutions, not a catalog** – Product categories presented as “What We Offer” or “Power Solutions” (Automotive, UPS, Solar, etc.), not as a product grid with prices.
 3. **Service and support** – Emphasize expert guidance, installation, emergency support, same-day service.
 4. **Social proof** – Testimonials, authorized brands, locations.

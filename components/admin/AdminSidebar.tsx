@@ -3,25 +3,38 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useSiteSettings } from '@/components/providers/SiteSettingsProvider'
 import {
   LayoutDashboard,
   MapPin,
   Star,
   Package,
   Inbox,
+  UserPlus,
   Settings,
   LogOut,
   Battery,
   Home,
   ExternalLink,
   FolderTree,
+  Sparkles,
+  BookOpen,
+  Headphones,
+  Zap,
+  Car,
 } from 'lucide-react'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/homepage', label: 'Homepage', icon: Home },
   { href: '/admin/categories', label: 'Categories', icon: FolderTree },
+  { href: '/admin/why-choose-us', label: 'Why Choose Us', icon: Sparkles },
+  { href: '/admin/about-us', label: 'About Us', icon: BookOpen },
   { href: '/admin/products', label: 'Products', icon: Package },
+  { href: '/admin/vehicles', label: 'Vehicle Database', icon: Car },
+  { href: '/admin/appliances', label: 'Appliances', icon: Zap },
+  { href: '/admin/leads', label: 'Leads', icon: UserPlus },
+  { href: '/admin/tickets', label: 'Support Tickets', icon: Headphones },
   { href: '/admin/branches', label: 'Branches', icon: MapPin },
   { href: '/admin/testimonials', label: 'Testimonials', icon: Star },
   { href: '/admin/inquiries', label: 'Inquiries', icon: Inbox },
@@ -31,6 +44,8 @@ const navItems = [
 export function AdminSidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const settings = useSiteSettings()
+  const adminLogo = settings.logo_dark_vertical || settings.logo_dark_horizontal
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -43,13 +58,25 @@ export function AdminSidebar() {
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 flex flex-col bg-slate-900 text-slate-200">
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 px-6 border-b border-slate-800">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E31B23]/20">
-          <Battery className="h-5 w-5 text-[#E31B23]" strokeWidth={2} />
-        </div>
-        <div>
-          <span className="font-semibold text-white">Universal Batteries</span>
-          <p className="text-xs text-slate-400">Staff Portal</p>
-        </div>
+        {adminLogo ? (
+          <Link href="/admin" className="flex items-center gap-2 min-w-0">
+            <img
+              src={adminLogo}
+              alt="Universal Batteries"
+              className="h-10 w-auto max-h-10 object-contain"
+            />
+          </Link>
+        ) : (
+          <>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E31B23]/20 shrink-0">
+              <Battery className="h-5 w-5 text-[#E31B23]" strokeWidth={2} />
+            </div>
+            <div className="min-w-0">
+              <span className="font-semibold text-white block truncate">Universal Batteries</span>
+              <p className="text-xs text-slate-400">Staff Portal</p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Nav */}

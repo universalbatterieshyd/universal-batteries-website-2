@@ -84,7 +84,7 @@ export function HeroContentManager({ initialData }: { initialData: HeroContent |
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Tagline (e.g. Since 1971 • Trusted Power Solutions)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Tagline (e.g. Since 1992 • Trusted Power Solutions)</label>
           <input
             type="text"
             value={hero.tagline || ''}

@@ -29,7 +29,7 @@ type Category = {
   overview?: string | null
   ctaHeadline?: string | null
   ctaSubtext?: string | null
-  faqItems?: { question: string; answer: string }[]
+  faqItems?: { question: string; answer: string; moreInfo?: string }[]
   icon?: string | null
 }
 
@@ -106,7 +106,7 @@ export function CategoriesManager() {
       ctaHeadline: c.ctaHeadline || '',
       ctaSubtext: c.ctaSubtext || '',
       faqItems: (c.faqItems || [])
-        .map((i) => `${i.question}|${i.answer}`)
+        .map((i) => (i.moreInfo ? `${i.question}|${i.answer}||${i.moreInfo}` : `${i.question}|${i.answer}`))
         .join('\n'),
       icon: c.icon || 'Car',
     })
@@ -121,10 +121,15 @@ export function CategoriesManager() {
       .split('\n')
       .filter(Boolean)
       .map((line) => {
-        const i = line.indexOf('|')
+        const pipeIdx = line.indexOf('|')
+        const rest = pipeIdx >= 0 ? line.slice(pipeIdx + 1) : ''
+        const doublePipeIdx = rest.indexOf('||')
+        const answer = doublePipeIdx >= 0 ? rest.slice(0, doublePipeIdx).trim() : rest.trim()
+        const moreInfo = doublePipeIdx >= 0 ? rest.slice(doublePipeIdx + 2).trim() : undefined
         return {
-          question: i >= 0 ? line.slice(0, i).trim() : line,
-          answer: i >= 0 ? line.slice(i + 1).trim() : '',
+          question: pipeIdx >= 0 ? line.slice(0, pipeIdx).trim() : line,
+          answer,
+          ...(moreInfo ? { moreInfo } : {}),
         }
       })
 
@@ -417,12 +422,15 @@ export function CategoriesManager() {
               </div>
             </div>
             <div>
-              <Label>Hero image URL</Label>
+              <Label>Hero banner image URL</Label>
               <Input
                 value={form.heroImageUrl}
                 onChange={(e) => setForm({ ...form, heroImageUrl: e.target.value })}
-                placeholder="/placeholder.svg"
+                placeholder="https://... (leave empty for gradient)"
               />
+              <p className="text-xs text-slate-500 mt-1.5">
+                Desktop: 1920×600px (16:5). Mobile: 800×600px or 1200×600px. Use landscape, high-res JPG/WebP.
+              </p>
             </div>
             <div>
               <Label>Overview (main content)</Label>
@@ -450,12 +458,12 @@ export function CategoriesManager() {
               />
             </div>
             <div>
-              <Label>FAQ (one per line: Question?|Answer)</Label>
+              <Label>FAQ (one per line: Question|Answer or Question|Answer||More info)</Label>
               <Textarea
                 value={form.faqItems}
                 onChange={(e) => setForm({ ...form, faqItems: e.target.value })}
-                rows={4}
-                placeholder="What warranty do you offer?|We provide..."
+                rows={6}
+                placeholder="What warranty?|We provide 2 years.||Extended warranty details and conditions..."
               />
             </div>
             <DialogFooter>

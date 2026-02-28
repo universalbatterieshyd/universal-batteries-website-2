@@ -11,6 +11,10 @@ export type SiteSettings = {
   site_url: string
   gst?: string
   logo_url: string
+  logo_light_horizontal: string
+  logo_light_vertical: string
+  logo_dark_horizontal: string
+  logo_dark_vertical: string
   favicon_url: string
 }
 
@@ -23,6 +27,10 @@ const defaults: SiteSettings = {
   site_url: 'https://universalbatteries.co.in',
   gst: '',
   logo_url: '',
+  logo_light_horizontal: '',
+  logo_light_vertical: '',
+  logo_dark_horizontal: '',
+  logo_dark_vertical: '',
   favicon_url: '/favicon.svg',
 }
 

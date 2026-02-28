@@ -1,7 +1,8 @@
 "use client";
 
-import { MapPin, Mail, Phone } from "lucide-react";
+import { MapPin, Mail, Phone, Headphones } from "lucide-react";
 import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
+import Link from "next/link";
 
 const ContactCTA = () => {
   const settings = useSiteSettings();
@@ -16,9 +17,16 @@ const ContactCTA = () => {
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-6">
                 Get in Touch with Us Today
               </h2>
-              <p className="text-lg text-muted-foreground mb-8">
+              <p className="text-lg text-muted-foreground mb-6">
                 Have questions? Need a quote? Our team is ready to help you find the perfect power solution. Use the WhatsApp widget for instant support, or find our contact details below.
               </p>
+              <Link
+                href="/support"
+                className="inline-flex items-center gap-2 text-primary font-medium hover:underline"
+              >
+                <Headphones className="h-4 w-4" />
+                Submit a support ticket
+              </Link>
             </div>
 
             {/* Right Side - Contact Info */}

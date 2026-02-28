@@ -7,14 +7,17 @@ import Link from "next/link";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const settings = useSiteSettings();
-  const hasLogo = Boolean(settings.logo_url?.trim());
+  const logoUrl = settings.logo_light_horizontal || settings.logo_url;
+  const hasLogo = Boolean(logoUrl?.trim());
 
   const navItems = [
-    { label: "Home", href: "#home" },
-    { label: "Products", href: "#products" },
-    { label: "Services", href: "#services" },
-    { label: "About", href: "#about" },
-    { label: "Contact", href: "#contact" }
+    { label: "Home", href: "/#home" },
+    { label: "Products", href: "/#products" },
+    { label: "Solutions", href: "/solutions" },
+    { label: "Resources", href: "/resources" },
+    { label: "Support", href: "/support" },
+    { label: "About", href: "/#about" },
+    { label: "Contact", href: "/#contact" }
   ];
 
   return (
@@ -25,7 +28,7 @@ const Navbar = () => {
           <Link href="/#home" className="flex items-center space-x-3">
             {hasLogo ? (
               <img
-                src={settings.logo_url}
+                src={logoUrl}
                 alt="Universal Batteries"
                 className="h-12 w-auto max-w-[160px] object-contain"
               />
@@ -36,7 +39,7 @@ const Navbar = () => {
                 </div>
                 <div>
                   <div className="text-xl font-bold text-foreground">Universal Batteries</div>
-                  <div className="text-xs text-muted-foreground">Since 1971</div>
+                  <div className="text-xs text-muted-foreground">Since 1992</div>
                 </div>
               </>
             )}
@@ -48,7 +51,7 @@ const Navbar = () => {
               <a
                 key={item.label}
                 href={item.href}
-                className="text-foreground hover:text-primary transition-colors font-medium"
+                className="text-foreground hover:text-primary transition-colors duration-300 font-medium"
               >
                 {item.label}
               </a>
@@ -77,7 +80,7 @@ const Navbar = () => {
                 <a
                   key={item.label}
                   href={item.href}
-                  className="text-foreground hover:text-primary transition-colors font-medium py-2"
+                  className="text-foreground hover:text-primary transition-colors duration-300 font-medium py-2"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.label}

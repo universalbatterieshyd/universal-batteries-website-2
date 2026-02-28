@@ -58,7 +58,7 @@ export default function AdminLoginPage() {
           </p>
         </div>
         <p className="text-blue-200/70 text-sm">
-          Trusted power solutions since 1971
+          Trusted power solutions since 1992
         </p>
       </div>
 

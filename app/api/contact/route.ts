@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { sendLeadToGoogleSheets } from '@/lib/google-sheets-leads'
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,6 +33,15 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    await sendLeadToGoogleSheets({
+      source: 'contact',
+      name,
+      phone,
+      email: email || '',
+      queryType: queryType || 'general',
+      message,
+    })
 
     return NextResponse.json(
       { success: true, message: 'Form submitted successfully' },
