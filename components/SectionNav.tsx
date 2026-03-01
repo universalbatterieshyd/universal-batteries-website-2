@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 
 const SECTIONS = [
@@ -17,6 +17,8 @@ export function SectionNav() {
   const pathname = usePathname()
   const [isVisible, setIsVisible] = useState(false)
   const [activeId, setActiveId] = useState<string>('home')
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const buttonRefs = useRef<Record<string, HTMLButtonElement | null>>({})
 
   const isHomePage = pathname === '/'
 
@@ -50,6 +52,14 @@ export function SectionNav() {
     })
     return () => observer.disconnect()
   }, [])
+
+  // Scroll the active nav item into view and center it on mobile
+  useEffect(() => {
+    const btn = buttonRefs.current[activeId]
+    if (btn && scrollRef.current) {
+      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+    }
+  }, [activeId])
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id)
@@ -92,18 +102,23 @@ export function SectionNav() {
         ))}
       </nav>
 
-      {/* Mobile: horizontal bar at bottom */}
+      {/* Mobile: horizontal scrollable bar at bottom */}
       <nav
         className="md:hidden fixed bottom-20 left-4 right-20 z-[9990]"
         aria-label="Section navigation"
       >
-        <div className="glass-card rounded-full px-4 py-2 flex items-center gap-1 overflow-x-auto scrollbar-hide">
+        <div
+          ref={scrollRef}
+          className="glass-card rounded-full px-3 py-2 flex items-center gap-1 overflow-x-auto scrollbar-hide overscroll-x-contain touch-pan-x"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {SECTIONS.map(({ id, label }) => (
             <button
               key={id}
+              ref={(el) => { buttonRefs.current[id] = el }}
               type="button"
               onClick={() => scrollToSection(id)}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                 activeId === id
                   ? 'bg-white dark:bg-slate-800 text-primary shadow-md border border-slate-200 dark:border-slate-700'
                   : 'text-muted-foreground hover:text-foreground'

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { ImageUploadField } from './ImageUploadField'
 
 const ICON_OPTIONS = ['Car', 'Zap', 'Server', 'Sun', 'Battery', 'Wrench', 'Shield', 'Truck']
 
@@ -26,6 +27,7 @@ type Category = {
   heroHeadline?: string | null
   heroTagline?: string | null
   heroImageUrl?: string | null
+  cardImageUrl?: string | null
   overview?: string | null
   ctaHeadline?: string | null
   ctaSubtext?: string | null
@@ -47,6 +49,7 @@ export function CategoriesManager() {
     heroHeadline: '',
     heroTagline: '',
     heroImageUrl: '',
+    cardImageUrl: '',
     overview: '',
     ctaHeadline: '',
     ctaSubtext: '',
@@ -83,6 +86,7 @@ export function CategoriesManager() {
       heroHeadline: '',
       heroTagline: '',
       heroImageUrl: '',
+      cardImageUrl: '',
       overview: '',
       ctaHeadline: '',
       ctaSubtext: '',
@@ -102,6 +106,7 @@ export function CategoriesManager() {
       heroHeadline: c.heroHeadline || '',
       heroTagline: c.heroTagline || '',
       heroImageUrl: c.heroImageUrl || '',
+      cardImageUrl: c.cardImageUrl || '',
       overview: c.overview || '',
       ctaHeadline: c.ctaHeadline || '',
       ctaSubtext: c.ctaSubtext || '',
@@ -141,6 +146,7 @@ export function CategoriesManager() {
       heroHeadline: form.heroHeadline || null,
       heroTagline: form.heroTagline || null,
       heroImageUrl: form.heroImageUrl || null,
+      cardImageUrl: form.cardImageUrl || null,
       overview: form.overview || null,
       ctaHeadline: form.ctaHeadline || null,
       ctaSubtext: form.ctaSubtext || null,
@@ -320,6 +326,7 @@ export function CategoriesManager() {
               heroHeadline: '',
               heroTagline: '',
               heroImageUrl: '',
+              cardImageUrl: '',
               overview: '',
               ctaHeadline: '',
               ctaSubtext: '',
@@ -430,6 +437,19 @@ export function CategoriesManager() {
               />
               <p className="text-xs text-slate-500 mt-1.5">
                 Desktop: 1920×600px (16:5). Mobile: 800×600px or 1200×600px. Use landscape, high-res JPG/WebP.
+              </p>
+            </div>
+            <div>
+              <Label>Homepage card image (640×400px)</Label>
+              <ImageUploadField
+                value={form.cardImageUrl}
+                onChange={(v) => setForm({ ...form, cardImageUrl: v })}
+                type="category"
+                placeholder="Upload or paste URL"
+                previewSize="md"
+              />
+              <p className="text-xs text-slate-500 mt-1.5">
+                Shown on homepage. 640×400px recommended—sharp on retina, ~100–150KB when compressed.
               </p>
             </div>
             <div>

@@ -59,7 +59,7 @@ export default async function HomePage() {
         .order("order", { ascending: true }),
       supabase
         .from("product_category")
-        .select("id, name, slug, description, icon")
+        .select("id, name, slug, description, icon, card_image_url")
         .is("parent_id", null)
         .order("order", { ascending: true }),
       supabase
@@ -73,7 +73,7 @@ export default async function HomePage() {
     ]);
     heroData = heroRes.data ?? null;
     sectionRows = (sectionsRes.data ?? []).filter((s) => s.is_visible);
-    categories = (categoriesRes.data ?? []) as { id: string; name: string; slug: string; description?: string | null; icon?: string | null }[];
+    categories = (categoriesRes.data ?? []) as { id: string; name: string; slug: string; description?: string | null; icon?: string | null; card_image_url?: string | null }[];
     whyChooseUsItems = (whyRes.data ?? []).map((r) => ({
       title: r.title,
       description: r.description,

@@ -17,22 +17,39 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   const session = await getSupabaseSession()
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthorized. Please log in again.' }, { status: 401 })
   }
 
-  const body = await request.json()
+  let body: Record<string, unknown>
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
   const keys = ['phone', 'whatsapp', 'email', 'address', 'gst', 'hours', 'site_url', 'logo_url', 'logo_light_horizontal', 'logo_light_vertical', 'logo_dark_horizontal', 'logo_dark_vertical', 'favicon_url']
 
   for (const key of keys) {
     if (body[key] !== undefined) {
-      await supabase.from('site_settings').upsert(
-        { key, value: String(body[key]), updated_at: new Date().toISOString() },
+      const { error } = await supabase.from('site_settings').upsert(
+        { key, value: String(body[key] ?? ''), updated_at: new Date().toISOString() },
         { onConflict: 'key' }
       )
+      if (error) {
+        console.error('Settings upsert error:', key, error)
+        return NextResponse.json(
+          { error: `Failed to save ${key}: ${error.message}` },
+          { status: 500 }
+        )
+      }
     }
   }
 
-  const { data } = await supabase.from('site_settings').select('key, value')
+  const { data, error } = await supabase.from('site_settings').select('key, value')
+  if (error) {
+    console.error('Settings fetch after save:', error)
+    return NextResponse.json({ error: 'Saved but failed to refresh' }, { status: 500 })
+  }
   const map = Object.fromEntries((data || []).map((row) => [row.key, row.value]))
   return NextResponse.json(map)
 }

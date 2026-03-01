@@ -1,6 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { ImageUploadField } from './ImageUploadField'
+
+type HeroChip = {
+  label: string
+  href: string
+  icon: string
+  image_url?: string | null
+}
+
+const DEFAULT_CTA_CHIPS: HeroChip[] = [
+  { label: "Need home backup or solar?", href: "/solutions/home-backup", icon: "Home" },
+  { label: "Running an office, clinic or datacentre?", href: "/solutions/office-ups", icon: "Building2" },
+  { label: "Looking for a battery replacement?", href: "/solutions/home-backup#battery-finder", icon: "Battery" },
+  { label: "View Products", href: "/#products", icon: "Package" },
+]
 
 type HeroContent = {
   id: string
@@ -12,6 +27,7 @@ type HeroContent = {
   cta_secondary_link: string | null
   background_image_url: string | null
   tagline: string | null
+  cta_chips?: HeroChip[] | null
   is_active: boolean
   order: number
 }
@@ -47,6 +63,7 @@ export function HeroContentManager({ initialData }: { initialData: HeroContent |
         ctaSecondaryLink: hero.cta_secondary_link,
         backgroundImageUrl: hero.background_image_url,
         tagline: hero.tagline,
+        ctaChips: hero.cta_chips ?? DEFAULT_CTA_CHIPS,
         isActive: hero.is_active,
       }),
     })
@@ -139,15 +156,65 @@ export function HeroContentManager({ initialData }: { initialData: HeroContent |
             />
           </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Background Image URL</label>
-          <input
-            type="text"
-            value={hero.background_image_url || ''}
-            onChange={(e) => setHero({ ...hero, background_image_url: e.target.value })}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-            placeholder="/placeholder.svg or full URL"
-          />
+        <ImageUploadField
+          label="Hero background image"
+          value={hero.background_image_url || ''}
+          onChange={(v) => setHero({ ...hero, background_image_url: v })}
+          type="hero"
+          placeholder="Upload or paste URL"
+          previewSize="lg"
+        />
+        <div className="border-t border-gray-200 pt-6">
+          <h3 className="text-base font-semibold text-gray-900 mb-2">Hero category chips</h3>
+          <p className="text-sm text-gray-600 mb-4">Optional background images (400×400px recommended). Leave empty for solid red.</p>
+          <div className="space-y-4">
+            {(hero.cta_chips ?? DEFAULT_CTA_CHIPS).map((chip, i) => {
+              const chips = hero.cta_chips ?? DEFAULT_CTA_CHIPS
+              const setChip = (updates: Partial<HeroChip>) => {
+                const next = [...chips]
+                next[i] = { ...next[i], ...updates }
+                setHero({ ...hero, cta_chips: next })
+              }
+              return (
+                <div key={i} className="rounded-lg border border-gray-200 p-4 bg-gray-50/50 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-medium text-gray-700">Chip {i + 1}</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Label</label>
+                      <input
+                        type="text"
+                        value={chip.label}
+                        onChange={(e) => setChip({ label: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Link</label>
+                      <input
+                        type="text"
+                        value={chip.href}
+                        onChange={(e) => setChip({ href: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        placeholder="/solutions/home-backup"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Background image (400×400px)</label>
+                    <ImageUploadField
+                      value={chip.image_url || ''}
+                      onChange={(v) => setChip({ image_url: v })}
+                      type="chip"
+                      placeholder="Upload or paste URL"
+                      previewSize="md"
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <input

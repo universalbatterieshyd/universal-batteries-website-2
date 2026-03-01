@@ -23,6 +23,7 @@ export async function PATCH(
   if (body.ctaSecondaryLink !== undefined) update.cta_secondary_link = body.ctaSecondaryLink
   if (body.backgroundImageUrl !== undefined) update.background_image_url = body.backgroundImageUrl
   if (body.tagline !== undefined) update.tagline = body.tagline
+  if (body.ctaChips !== undefined) update.cta_chips = body.ctaChips
   if (body.isActive !== undefined) update.is_active = body.isActive
   if (body.order !== undefined) update.order = body.order
 

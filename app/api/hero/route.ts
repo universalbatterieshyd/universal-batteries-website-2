@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
       cta_secondary_link: body.ctaSecondaryLink,
       background_image_url: body.backgroundImageUrl,
       tagline: body.tagline,
+      cta_chips: body.ctaChips ?? null,
       is_active: body.isActive ?? true,
       order: body.order ?? 0,
     })

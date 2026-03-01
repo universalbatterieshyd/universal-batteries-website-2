@@ -24,6 +24,7 @@ export async function PATCH(
       heroHeadline?: string
       heroTagline?: string
       heroImageUrl?: string
+      cardImageUrl?: string | null
       overview?: string
       ctaHeadline?: string
       ctaSubtext?: string
@@ -40,6 +41,7 @@ export async function PATCH(
     if (body.heroHeadline !== undefined) updates.hero_headline = body.heroHeadline
     if (body.heroTagline !== undefined) updates.hero_tagline = body.heroTagline
     if (body.heroImageUrl !== undefined) updates.hero_image_url = body.heroImageUrl
+    if (body.cardImageUrl !== undefined) updates.card_image_url = body.cardImageUrl
     if (body.overview !== undefined) updates.overview = body.overview
     if (body.ctaHeadline !== undefined) updates.cta_headline = body.ctaHeadline
     if (body.ctaSubtext !== undefined) updates.cta_subtext = body.ctaSubtext

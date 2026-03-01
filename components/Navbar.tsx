@@ -1,13 +1,16 @@
 "use client";
 import { useState } from "react";
 import { Menu, X, Battery } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
 import Link from "next/link";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { resolvedTheme } = useTheme();
   const settings = useSiteSettings();
-  const logoUrl = settings.logo_light_horizontal || settings.logo_url;
+  const isDark = resolvedTheme === "dark";
+  const logoUrl = isDark ? (settings.logo_dark_horizontal || settings.logo_url) : (settings.logo_light_horizontal || settings.logo_url);
   const hasLogo = Boolean(logoUrl?.trim());
 
   const navItems = [
