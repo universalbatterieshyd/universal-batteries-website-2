@@ -145,20 +145,13 @@ export function CategoriesManager() {
     if (!form.name.trim()) return
     const slug = form.slug || form.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
     const faqItems = form.faqItems
-      .split('\n')
-      .filter(Boolean)
-      .map((line) => {
-        const pipeIdx = line.indexOf('|')
-        const rest = pipeIdx >= 0 ? line.slice(pipeIdx + 1) : ''
-        const doublePipeIdx = rest.indexOf('||')
-        const answer = doublePipeIdx >= 0 ? rest.slice(0, doublePipeIdx).trim() : rest.trim()
-        const moreInfo = doublePipeIdx >= 0 ? rest.slice(doublePipeIdx + 2).trim() : undefined
-        return {
-          question: pipeIdx >= 0 ? line.slice(0, pipeIdx).trim() : line,
-          answer,
-          ...(moreInfo ? { moreInfo } : {}),
-        }
-      })
+      .filter((i) => i.question.trim() || i.answer.trim())
+      .map((i) => ({
+        question: i.question.trim(),
+        answer: i.answer.trim(),
+        ...(i.moreInfo?.trim() ? { moreInfo: i.moreInfo.trim() } : {}),
+        ...(i.articleSlug?.trim() ? { articleSlug: i.articleSlug.trim() } : {}),
+      }))
 
     const payload = {
       name: form.name.trim(),
