@@ -18,7 +18,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/resources/home-backup-solar-hyderabad`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${baseUrl}/resources/choose-right-ups-office`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${baseUrl}/resources/solar-basics-hyderabad`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${baseUrl}/articles`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
   ]
+
+  let articlePages: MetadataRoute.Sitemap = []
+  try {
+    const { data: articles } = await supabase
+      .from('article')
+      .select('slug, updated_at')
+      .eq('is_published', true)
+    articlePages = (articles || []).map((a) => ({
+      url: `${baseUrl}/articles/${a.slug}`,
+      lastModified: a.updated_at ? new Date(a.updated_at) : new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }))
+  } catch {
+    // ignore
+  }
 
   let categoryPages: MetadataRoute.Sitemap = []
   try {
@@ -36,5 +53,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // ignore
   }
 
-  return [...staticPages, ...categoryPages]
+  return [...staticPages, ...articlePages, ...categoryPages]
 }

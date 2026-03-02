@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { getSupabaseSession } from '@/lib/auth'
 
-const ALLOWED_TYPES = ['logo', 'favicon', 'banner', 'hero', 'chip', 'category']
+const ALLOWED_TYPES = ['logo', 'favicon', 'banner', 'hero', 'chip', 'category', 'article']
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
 
 export async function POST(request: NextRequest) {

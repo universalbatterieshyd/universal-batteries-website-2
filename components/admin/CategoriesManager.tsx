@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FolderTree, Plus, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
+import { FolderTree, Plus, Pencil, Trash2, ChevronDown, ChevronRight, GripVertical, FileText } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,7 @@ type Category = {
   overview?: string | null
   ctaHeadline?: string | null
   ctaSubtext?: string | null
-  faqItems?: { question: string; answer: string; moreInfo?: string }[]
+  faqItems?: { question: string; answer: string; moreInfo?: string; articleSlug?: string }[]
   icon?: string | null
 }
 
@@ -41,6 +41,7 @@ export function CategoriesManager() {
   const [editing, setEditing] = useState<Category | null>(null)
   const [creating, setCreating] = useState(false)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const [articles, setArticles] = useState<{ slug: string; title: string }[]>([])
   const [form, setForm] = useState({
     name: '',
     slug: '',
@@ -53,7 +54,7 @@ export function CategoriesManager() {
     overview: '',
     ctaHeadline: '',
     ctaSubtext: '',
-    faqItems: '' as string,
+    faqItems: [] as { question: string; answer: string; moreInfo?: string; articleSlug?: string }[],
     icon: 'Car',
   })
 
@@ -73,6 +74,24 @@ export function CategoriesManager() {
     loadCategories()
   }, [])
 
+  const loadArticles = async () => {
+    try {
+      const res = await fetch('/api/articles?all=true')
+      const data = await res.json()
+      if (res.ok && Array.isArray(data)) {
+        setArticles(data.map((a: { slug?: string; title?: string }) => ({ slug: a.slug ?? '', title: a.title ?? '' })))
+      } else {
+        setArticles([])
+      }
+    } catch {
+      setArticles([])
+    }
+  }
+
+  useEffect(() => {
+    if (editing || creating) loadArticles()
+  }, [editing, creating])
+
   const topLevel = categories.filter((c) => !c.parentId)
   const getSubcategories = (parentId: string) =>
     categories.filter((c) => c.parentId === parentId)
@@ -90,7 +109,7 @@ export function CategoriesManager() {
       overview: '',
       ctaHeadline: '',
       ctaSubtext: '',
-      faqItems: '',
+      faqItems: [],
       icon: 'Car',
     })
     setEditing(null)
@@ -110,9 +129,12 @@ export function CategoriesManager() {
       overview: c.overview || '',
       ctaHeadline: c.ctaHeadline || '',
       ctaSubtext: c.ctaSubtext || '',
-      faqItems: (c.faqItems || [])
-        .map((i) => (i.moreInfo ? `${i.question}|${i.answer}||${i.moreInfo}` : `${i.question}|${i.answer}`))
-        .join('\n'),
+      faqItems: (c.faqItems || []).map((i) => ({
+        question: i.question || '',
+        answer: i.answer || '',
+        moreInfo: i.moreInfo || '',
+        articleSlug: i.articleSlug || '',
+      })),
       icon: c.icon || 'Car',
     })
     setEditing(c)
@@ -330,7 +352,7 @@ export function CategoriesManager() {
               overview: '',
               ctaHeadline: '',
               ctaSubtext: '',
-              faqItems: '',
+              faqItems: [],
               icon: 'Car',
             })
             setCreating(true)
@@ -478,13 +500,95 @@ export function CategoriesManager() {
               />
             </div>
             <div>
-              <Label>FAQ (one per line: Question|Answer or Question|Answer||More info)</Label>
-              <Textarea
-                value={form.faqItems}
-                onChange={(e) => setForm({ ...form, faqItems: e.target.value })}
-                rows={6}
-                placeholder="What warranty?|We provide 2 years.||Extended warranty details and conditions..."
-              />
+              <div className="flex items-center justify-between mb-2">
+                <Label>FAQs</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setForm({ ...form, faqItems: [...form.faqItems, { question: '', answer: '', moreInfo: '', articleSlug: '' }] })}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add FAQ
+                </Button>
+              </div>
+              <div className="space-y-4 max-h-[320px] overflow-y-auto pr-2">
+                {form.faqItems.map((faq, idx) => (
+                  <div key={idx} className="rounded-lg border border-slate-200 bg-slate-50/50 p-4 space-y-3">
+                    <div className="flex items-start gap-2">
+                      <span className="mt-2.5 text-slate-400" aria-hidden><GripVertical className="h-4 w-4" /></span>
+                      <div className="flex-1 space-y-2">
+                        <Input
+                          value={faq.question}
+                          onChange={(e) => {
+                            const next = [...form.faqItems]
+                            next[idx] = { ...next[idx], question: e.target.value }
+                            setForm({ ...form, faqItems: next })
+                          }}
+                          placeholder="Question"
+                          className="font-medium"
+                        />
+                        <Textarea
+                          value={faq.answer}
+                          onChange={(e) => {
+                            const next = [...form.faqItems]
+                            next[idx] = { ...next[idx], answer: e.target.value }
+                            setForm({ ...form, faqItems: next })
+                          }}
+                          placeholder="Answer"
+                          rows={2}
+                          className="text-sm"
+                        />
+                        <details className="group">
+                          <summary className="cursor-pointer text-sm text-slate-500 hover:text-slate-700">Optional: More info (expandable on site)</summary>
+                          <Textarea
+                            value={faq.moreInfo || ''}
+                            onChange={(e) => {
+                              const next = [...form.faqItems]
+                              next[idx] = { ...next[idx], moreInfo: e.target.value }
+                              setForm({ ...form, faqItems: next })
+                            }}
+                            placeholder="Extra details shown when user clicks &quot;More info&quot;"
+                            rows={2}
+                            className="mt-2 text-sm"
+                          />
+                        </details>
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-slate-400" />
+                          <select
+                            value={faq.articleSlug || ''}
+                            onChange={(e) => {
+                              const next = [...form.faqItems]
+                              next[idx] = { ...next[idx], articleSlug: e.target.value }
+                              setForm({ ...form, faqItems: next })
+                            }}
+                            className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                          >
+                            <option value="">No linked article</option>
+                            {(articles ?? []).map((a) => (
+                              <option key={a.slug} value={a.slug}>{a.title}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 shrink-0"
+                        onClick={() => setForm({ ...form, faqItems: form.faqItems.filter((_, i) => i !== idx) })}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {form.faqItems.length === 0 && (
+                <p className="text-sm text-slate-500 py-4 text-center border border-dashed border-slate-200 rounded-lg">
+                  No FAQs yet. Click &quot;Add FAQ&quot; to add one.
+                </p>
+              )}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={resetForm}>

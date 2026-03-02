@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, ChevronDown, ChevronUp } from 'lucide-react'
+import Link from 'next/link'
+import { Search, ChevronDown, ChevronUp, FileText } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import {
   Accordion,
@@ -11,7 +12,7 @@ import {
 } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 
-type FAQItem = { question: string; answer: string; moreInfo?: string }
+type FAQItem = { question: string; answer: string; moreInfo?: string; articleSlug?: string }
 
 export function CategoryFAQWidget({ items }: { items: FAQItem[] }) {
   const [query, setQuery] = useState('')
@@ -67,6 +68,15 @@ export function CategoryFAQWidget({ items }: { items: FAQItem[] }) {
                       </AccordionTrigger>
                       <AccordionContent>
                         <p className="text-muted-foreground">{item.answer}</p>
+                        {item.articleSlug && (
+                          <Link
+                            href={`/articles/${item.articleSlug}`}
+                            className="inline-flex items-center gap-1.5 mt-3 text-primary font-medium hover:underline"
+                          >
+                            <FileText className="h-4 w-4" />
+                            Read full article
+                          </Link>
+                        )}
                         {item.moreInfo && (
                           <div className="mt-4">
                             {expandedMore.has(i) ? (

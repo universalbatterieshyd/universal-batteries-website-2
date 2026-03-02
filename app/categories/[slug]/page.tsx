@@ -49,7 +49,7 @@ export default async function CategoryPage({
   const heroTagline = category.hero_tagline || category.description || ''
   const hasHeroImage = Boolean(category.hero_image_url?.trim())
   const overview = category.overview || category.description || ''
-  const faqItems = (category.faq_items as { question: string; answer: string; moreInfo?: string }[]) || []
+  const faqItems = (category.faq_items as { question: string; answer: string; moreInfo?: string; articleSlug?: string }[]) || []
   const categorySlug = category.slug as string
 
   return (
