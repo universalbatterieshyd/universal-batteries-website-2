@@ -34,7 +34,7 @@ export interface ProductCategory {
   overview?: string | null
   ctaHeadline?: string | null
   ctaSubtext?: string | null
-  faqItems?: { question: string; answer: string }[]
+  faqItems?: { question: string; answer: string; moreInfo?: string; articleSlug?: string }[]
   icon?: string | null
 }
 
@@ -46,6 +46,7 @@ export interface Product {
   categoryId: string
   category: ProductCategory
   isActive: boolean
+  faqItems?: { question: string; answer: string; moreInfo?: string; articleSlug?: string }[]
 }
 
 export interface Contact {

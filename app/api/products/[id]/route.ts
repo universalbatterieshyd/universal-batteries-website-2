@@ -25,6 +25,7 @@ export async function PATCH(
   if (body.imageUrl !== undefined) updates.image_url = body.imageUrl
   if (body.isActive !== undefined) updates.is_active = body.isActive
   if (body.order !== undefined) updates.order = body.order
+  if (body.faqItems !== undefined) updates.faq_items = body.faqItems
   updates.updated_at = new Date().toISOString()
 
   const { data: product, error } = await supabase

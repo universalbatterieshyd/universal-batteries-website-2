@@ -20,6 +20,7 @@ export function ProductsManager({
     description: '',
     categoryId: '',
     isActive: true,
+    faqItems: '' as string,
   })
 
   const resetForm = () => {
@@ -28,6 +29,7 @@ export function ProductsManager({
       description: '',
       categoryId: categories[0]?.id || '',
       isActive: true,
+      faqItems: '',
     })
     setEditing(null)
     setCreating(false)
@@ -40,18 +42,46 @@ export function ProductsManager({
       description: p.description || '',
       categoryId: p.categoryId,
       isActive: p.isActive,
+      faqItems: (p.faqItems || [])
+        .map((i) => {
+          let base = i.moreInfo ? `${i.question}|${i.answer}||${i.moreInfo}` : `${i.question}|${i.answer}`
+          if (i.articleSlug?.trim()) base += `|||${i.articleSlug.trim()}`
+          return base
+        })
+        .join('\n'),
     })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.categoryId) return
+
+    const faqItems = form.faqItems
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => {
+        const tripleParts = line.split('|||')
+        const articleSlug = tripleParts.length > 1 ? tripleParts[1].trim() || undefined : undefined
+        const main = tripleParts[0]
+        const pipeIdx = main.indexOf('|')
+        const rest = pipeIdx >= 0 ? main.slice(pipeIdx + 1) : ''
+        const doublePipeIdx = rest.indexOf('||')
+        const answer = doublePipeIdx >= 0 ? rest.slice(0, doublePipeIdx).trim() : rest.trim()
+        const moreInfo = doublePipeIdx >= 0 ? rest.slice(doublePipeIdx + 2).trim() || undefined : undefined
+        return {
+          question: pipeIdx >= 0 ? main.slice(0, pipeIdx).trim() : main.trim(),
+          answer,
+          ...(moreInfo ? { moreInfo } : {}),
+          ...(articleSlug ? { articleSlug } : {}),
+        }
+      })
+
     try {
       if (editing) {
         const res = await fetch(`/api/products/${editing.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
+          body: JSON.stringify({ ...form, faqItems }),
         })
         if (res.ok) {
           const updated = await res.json()
@@ -62,7 +92,7 @@ export function ProductsManager({
         const res = await fetch('/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
+          body: JSON.stringify({ ...form, faqItems }),
         })
         if (res.ok) {
           const created = await res.json()
@@ -171,6 +201,23 @@ export function ProductsManager({
               <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
                 Active (show on website)
               </label>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                FAQs (optional, one per line: Question|Answer or Question|Answer||More info or add
+                &nbsp;|||article-slug to link an article)
+              </label>
+              <textarea
+                value={form.faqItems}
+                onChange={(e) => setForm({ ...form, faqItems: e.target.value })}
+                rows={4}
+                placeholder="What warranty?|12 months full replacement||Detailed warranty terms...|||battery-warranty-guide"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Product-specific FAQs. Category FAQs are configured on categories and shown on category
+                pages; these are for questions unique to this product.
+              </p>
             </div>
           </div>
           <div className="flex gap-2">

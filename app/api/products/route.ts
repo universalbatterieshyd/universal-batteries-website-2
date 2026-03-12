@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { title, slug, description, categoryId, specifications, brands, imageUrl, isActive, order } = body
+    const { title, slug, description, categoryId, specifications, brands, imageUrl, isActive, order, faqItems } = body
 
     if (!title || !categoryId) {
       return NextResponse.json(
@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
         image_url: imageUrl || null,
         is_active: isActive ?? true,
         order: order ?? 0,
+        faq_items: faqItems ?? [],
       })
       .select('*, category:product_category(*)')
       .single()
