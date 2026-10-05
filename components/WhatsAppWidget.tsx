@@ -1,10 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { useSiteSettings } from '@/components/providers/SiteSettingsProvider'
+import { cn } from '@/lib/utils'
+
+/** Pages with their own sticky mobile CTA, where the bubble would cover it. */
+const HIDE_ON_MOBILE_PATHS = ['/solutions/power-backup-sizer']
 
 export function WhatsAppWidget() {
   const settings = useSiteSettings()
+  const pathname = usePathname()
+  const hideOnMobile = HIDE_ON_MOBILE_PATHS.includes(pathname)
   const [isHovered, setIsHovered] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
 
@@ -24,7 +31,10 @@ export function WhatsAppWidget() {
     <>
       {/* Widget container - fixed bottom right */}
       <div
-        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-[9999] flex flex-col items-end gap-3"
+        className={cn(
+          'fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-[9999] flex-col items-end gap-3',
+          hideOnMobile ? 'hidden sm:flex' : 'flex'
+        )}
         style={{ marginBottom: 0 }}
       >
         {/* Tooltip - desktop hover only */}

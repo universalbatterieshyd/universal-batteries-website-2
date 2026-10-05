@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Package, Home, Building2, Battery } from "lucide-react";
+import { DEFAULT_CHIP_IMAGES, DEFAULT_HERO_BACKGROUND } from "@/lib/default-images";
 
 const ICON_MAP = { Home, Building2, Battery, Package } as const;
 
@@ -22,18 +23,28 @@ const DEFAULT_HEADLINE = "Powering Homes, Businesses & Industries";
 const DEFAULT_SUBHEADLINE = "Your trusted partner for genuine batteries, expert service, and reliable power solutions across Hyderabad for over 30 years.";
 
 const DEFAULT_CTA_CHIPS: HeroChip[] = [
-  { label: "Need home backup or solar?", href: "/solutions/home-backup", icon: "Home" },
-  { label: "Running an office, clinic or datacentre?", href: "/solutions/office-ups", icon: "Building2" },
-  { label: "Looking for a battery replacement?", href: "/solutions/home-backup#battery-finder", icon: "Battery" },
-  { label: "View Products", href: "/#products", icon: "Package" },
+  { label: "Need home backup or solar?", href: "/solutions/home-backup", icon: "Home", image_url: DEFAULT_CHIP_IMAGES["/solutions/home-backup"] },
+  { label: "Running an office, clinic or datacentre?", href: "/solutions/office-ups", icon: "Building2", image_url: DEFAULT_CHIP_IMAGES["/solutions/office-ups"] },
+  { label: "Looking for a battery replacement?", href: "/solutions/home-backup#battery-finder", icon: "Battery", image_url: DEFAULT_CHIP_IMAGES["/solutions/home-backup#battery-finder"] },
+  { label: "View Products", href: "/#products", icon: "Package", image_url: DEFAULT_CHIP_IMAGES["/#products"] },
 ];
+
+function withDefaultChipImages(chips: HeroChip[]): HeroChip[] {
+  return chips.map((chip) => ({
+    ...chip,
+    image_url: chip.image_url?.trim() || DEFAULT_CHIP_IMAGES[chip.href] || null,
+  }));
+}
 
 const Hero = ({ heroData }: { heroData?: HeroData }) => {
   const headline = heroData?.headline ?? DEFAULT_HEADLINE;
   const subheadline = heroData?.subheadline ?? DEFAULT_SUBHEADLINE;
-  const hasBgImage = Boolean(heroData?.background_image_url?.trim());
+  const backgroundUrl = heroData?.background_image_url?.trim() || DEFAULT_HERO_BACKGROUND;
+  const hasBgImage = Boolean(backgroundUrl);
   const tagline = heroData?.tagline ?? "Since 1992 • Trusted Power Solutions";
-  const chips = (heroData?.cta_chips?.length ? heroData.cta_chips : DEFAULT_CTA_CHIPS) as HeroChip[];
+  const chips = withDefaultChipImages(
+    (heroData?.cta_chips?.length ? heroData.cta_chips : DEFAULT_CTA_CHIPS) as HeroChip[]
+  );
 
   return (
     <section id="home" className="relative min-h-[600px] md:min-h-[700px] flex items-start md:items-center overflow-hidden">
@@ -42,7 +53,7 @@ const Hero = ({ heroData }: { heroData?: HeroData }) => {
         {hasBgImage && (
           <>
             <img 
-              src={heroData!.background_image_url!} 
+              src={backgroundUrl} 
               alt="Universal Batteries warehouse" 
               className="w-full h-full object-cover"
             />

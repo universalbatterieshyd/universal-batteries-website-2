@@ -9,6 +9,7 @@ import {
   Shield,
   Truck,
 } from "lucide-react";
+import { DEFAULT_CATEGORY_CARD_IMAGES } from "@/lib/default-images";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Car,
@@ -32,7 +33,7 @@ const ProductCategories = ({ config }: { config?: CategoryConfig | null }) => {
     name: c.name,
     description: c.description ?? "",
     icon: c.icon ?? "Battery",
-    cardImageUrl: c.card_image_url ?? null,
+    cardImageUrl: c.card_image_url?.trim() || DEFAULT_CATEGORY_CARD_IMAGES[c.slug] || null,
     gradient: "from-primary/20 to-primary/5",
   }));
 
