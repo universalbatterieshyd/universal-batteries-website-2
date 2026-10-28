@@ -3,18 +3,19 @@ import { supabase } from '@/lib/supabase'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const { id } = params
     const body = await request.json()
-    const { key, name, watts, emoji, showInVisual, order } = body
+    const { key, name, watts, emoji, iconUrl, showInVisual, order } = body
 
     const updates: Record<string, unknown> = {}
     if (key !== undefined) updates.key = key
     if (name !== undefined) updates.name = name
     if (watts !== undefined) updates.watts = watts
     if (emoji !== undefined) updates.emoji = emoji
+    if (iconUrl !== undefined) updates.icon_url = iconUrl || null
     if (showInVisual !== undefined) updates.show_in_visual = showInVisual
     if (order !== undefined) updates.order = order
 
@@ -36,6 +37,7 @@ export async function PATCH(
       name: data.name,
       watts: data.watts,
       emoji: data.emoji,
+      iconUrl: data.icon_url,
       showInVisual: data.show_in_visual,
       order: data.order,
     })
@@ -47,10 +49,10 @@ export async function PATCH(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const { id } = params
     const { error } = await supabase.from('appliance').delete().eq('id', id)
     if (error) {
       console.error('Appliance delete error:', error)

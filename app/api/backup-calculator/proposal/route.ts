@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { sendLeadToGoogleSheets } from '@/lib/google-sheets-leads'
+import { sendBackupCalculatorToGoogleSheets } from '@/lib/google-sheets-leads'
 import { VERIFIED_COOKIE, normalizeIndianMobile, readVerifiedToken } from '@/lib/backup-calculator/otp'
 import {
   BACKUP_HOUR_OPTIONS,
   DEFAULT_APPLIANCES,
+  isCustomApplianceKey,
   recommendBackupPlan,
   type ApplianceDef,
   type ApplianceSelection,
@@ -16,10 +17,40 @@ const USE_CASES: UseCase[] = ['home', 'shop', 'office', 'clinic']
 async function loadCatalog(): Promise<ApplianceDef[]> {
   const { data, error } = await supabase
     .from('appliance')
-    .select('key, name, watts, emoji')
+    .select('key, name, watts, emoji, icon_url')
     .order('order', { ascending: true })
   if (error || !data?.length) return DEFAULT_APPLIANCES
-  return data.map((a) => ({ key: a.key, name: a.name, watts: Number(a.watts), emoji: a.emoji || '🔌' }))
+  return data.map((a) => ({
+    key: a.key,
+    name: a.name,
+    watts: Number(a.watts),
+    emoji: a.emoji || '🔌',
+    iconUrl: a.icon_url || null,
+  }))
+}
+
+function parseSelections(raw: unknown): ApplianceSelection[] {
+  if (!Array.isArray(raw)) return []
+  const out: ApplianceSelection[] = []
+  for (const item of raw) {
+    const s = item as { key?: unknown; count?: unknown; name?: unknown; watts?: unknown }
+    const key = String(s.key ?? '')
+    const count = Math.min(50, Math.max(0, Math.floor(Number(s.count) || 0)))
+    if (!key || !count) continue
+    if (isCustomApplianceKey(key)) {
+      const watts = Math.min(5000, Math.max(1, Math.floor(Number(s.watts) || 0)))
+      if (!watts) continue
+      out.push({
+        key,
+        count,
+        name: String(s.name || 'Custom').trim().slice(0, 40),
+        watts,
+      })
+    } else {
+      out.push({ key, count })
+    }
+  }
+  return out
 }
 
 export async function POST(request: NextRequest) {
@@ -37,12 +68,7 @@ export async function POST(request: NextRequest) {
     const backupHours = (BACKUP_HOUR_OPTIONS as readonly number[]).includes(Number(body.backupHours))
       ? Number(body.backupHours)
       : 2
-    const selections: ApplianceSelection[] = (Array.isArray(body.selections) ? body.selections : [])
-      .map((s: { key?: unknown; count?: unknown }) => ({
-        key: String(s.key ?? ''),
-        count: Math.min(50, Math.max(0, Math.floor(Number(s.count) || 0))),
-      }))
-      .filter((s: ApplianceSelection) => s.key && s.count > 0)
+    const selections = parseSelections(body.selections)
 
     if (!selections.length) {
       return NextResponse.json({ error: 'Add at least one appliance' }, { status: 400 })
@@ -50,6 +76,7 @@ export async function POST(request: NextRequest) {
 
     const plan = recommendBackupPlan({ useCase, backupHours, selections, catalog: await loadCatalog() })
     const name = typeof body.name === 'string' ? body.name.trim().slice(0, 80) : ''
+    const appliancesSummary = plan.lines.map((l) => `${l.count}× ${l.name} (${l.watts}W)`).join('; ')
 
     const payload = {
       name: name || undefined,
@@ -57,14 +84,23 @@ export async function POST(request: NextRequest) {
       orgType: useCase,
       totalWatts: plan.connectedWatts,
       runningWatts: plan.runningWatts,
+      peakWatts: plan.peakWatts,
       backupHours,
       upsType: plan.systemType,
       recommendedVa: plan.inverterVa,
       batteryAh: plan.batteryAh,
       totalBatteries: plan.totalBatteries,
       bankVoltage: plan.bankVoltage,
+      estimatedBackupHours: plan.estimatedBackupHours,
       needsSurvey: plan.needsSurvey,
-      appliances: plan.lines.map((l) => ({ key: l.key, count: l.count })),
+      notes: plan.notes,
+      appliances: plan.lines.map((l) => ({
+        key: l.key,
+        name: l.name,
+        watts: l.watts,
+        count: l.count,
+      })),
+      appliancesSummary,
     }
 
     const { error } = await supabase.from('leads').insert({
@@ -76,13 +112,23 @@ export async function POST(request: NextRequest) {
     })
     if (error) console.error('Backup calculator lead insert error:', error)
 
-    await sendLeadToGoogleSheets({
-      source: 'power_backup_wizard',
+    await sendBackupCalculatorToGoogleSheets({
       name: name || undefined,
       phone: verified.phone,
-      totalWatts: plan.connectedWatts,
+      useCase,
       backupHours,
-      upsType: plan.systemType,
+      connectedWatts: plan.connectedWatts,
+      runningWatts: plan.runningWatts,
+      peakWatts: plan.peakWatts,
+      systemType: plan.systemType,
+      inverterVa: plan.inverterVa,
+      batteryAh: plan.batteryAh,
+      totalBatteries: plan.totalBatteries,
+      bankVoltage: plan.bankVoltage,
+      estimatedBackupHours: plan.estimatedBackupHours,
+      needsSurvey: plan.needsSurvey,
+      appliancesSummary,
+      notes: plan.notes.join(' | '),
       extra: JSON.stringify(payload),
     })
 

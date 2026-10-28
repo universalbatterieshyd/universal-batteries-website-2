@@ -1,9 +1,9 @@
 /**
  * Power backup sizing engine for the customer backup calculator.
  *
- * Battery capacity follows the standard energy balance:
- *   Ah = (running watts × hours) / (bank voltage × inverter efficiency × usable DoD × rate factor)
- * Inverter VA is sized on connected load with power factor and surge headroom.
+ * Battery capacity uses running load (with duty cycle for compressors).
+ * Inverter VA is sized on continuous load + motor startup surge, without
+ * showing surge numbers on the appliance cards.
  */
 
 export type UseCase = 'home' | 'shop' | 'office' | 'clinic'
@@ -14,9 +14,16 @@ export type ApplianceDef = {
   name: string
   watts: number
   emoji: string
+  iconUrl?: string | null
 }
 
-export type ApplianceSelection = { key: string; count: number }
+export type ApplianceSelection = {
+  key: string
+  count: number
+  /** Custom appliances only */
+  name?: string
+  watts?: number
+}
 
 export type BackupPlan = {
   useCase: UseCase
@@ -24,6 +31,7 @@ export type BackupPlan = {
   backupHours: number
   connectedWatts: number
   runningWatts: number
+  peakWatts: number
   energyWh: number
   inverterVa: number
   bankVoltage: number
@@ -35,20 +43,27 @@ export type BackupPlan = {
   estimatedBackupHours: number
   needsSurvey: boolean
   notes: string[]
-  lines: { key: string; name: string; emoji: string; watts: number; count: number }[]
+  lines: { key: string; name: string; emoji: string; iconUrl?: string | null; watts: number; count: number }[]
 }
 
+/**
+ * Conservative running watts (worst-case nameplate / common Indian models).
+ * LED light and ceiling fan match shop practice (20 W / 80 W).
+ */
 export const DEFAULT_APPLIANCES: ApplianceDef[] = [
   { key: 'led-light', name: 'LED Light', watts: 20, emoji: '💡' },
-  { key: 'fan', name: 'Ceiling Fan', watts: 75, emoji: '🌀' },
-  { key: 'tv', name: 'TV', watts: 100, emoji: '📺' },
-  { key: 'router', name: 'WiFi Router', watts: 15, emoji: '📡' },
-  { key: 'laptop', name: 'Laptop / PC', watts: 65, emoji: '💻' },
-  { key: 'fridge', name: 'Refrigerator', watts: 150, emoji: '🧊' },
-  { key: 'washing-machine', name: 'Washing Machine', watts: 500, emoji: '🧺' },
+  { key: 'tube-light', name: 'Tube Light', watts: 40, emoji: '💡' },
+  { key: 'fan', name: 'Ceiling Fan', watts: 80, emoji: '🌀' },
+  { key: 'bldc-fan', name: 'BLDC Fan', watts: 40, emoji: '🌀' },
+  { key: 'tv', name: 'LED TV', watts: 120, emoji: '📺' },
+  { key: 'router', name: 'WiFi Router', watts: 20, emoji: '📡' },
+  { key: 'laptop', name: 'Laptop', watts: 90, emoji: '💻' },
+  { key: 'macbook', name: 'MacBook', watts: 100, emoji: '💻' },
+  { key: 'fridge', name: 'Refrigerator', watts: 200, emoji: '🧊' },
+  { key: 'washing-machine', name: 'Washing Machine', watts: 800, emoji: '🧺' },
   { key: 'water-pump', name: 'Water Pump', watts: 750, emoji: '💧' },
-  { key: 'microwave', name: 'Microwave', watts: 1000, emoji: '🍲' },
-  { key: 'ac', name: 'AC (1 Ton)', watts: 1200, emoji: '❄️' },
+  { key: 'microwave', name: 'Microwave', watts: 1200, emoji: '🍲' },
+  { key: 'ac', name: 'AC (1 Ton)', watts: 1500, emoji: '❄️' },
 ]
 
 export const USE_CASE_PRESETS: Record<UseCase, Record<string, number>> = {
@@ -70,16 +85,41 @@ export const BACKUP_HOUR_OPTIONS = [1, 2, 3, 4, 6, 8] as const
 /** Fraction of time the appliance actually draws rated power (compressors cycle). */
 const DUTY_CYCLE: Record<string, number> = {
   fridge: 0.5,
-  ac: 0.75,
+  ac: 0.7,
+  'washing-machine': 0.6,
+  microwave: 0.5,
+}
+
+/**
+ * Startup multiplier vs running watts. Used only for inverter VA sizing
+ * so motor loads don't trip the inverter on start.
+ */
+const SURGE_FACTOR: Record<string, number> = {
+  fan: 2.5,
+  'bldc-fan': 1.5,
+  fridge: 3,
+  'washing-machine': 2.5,
+  'water-pump': 4,
+  ac: 3.5,
+  microwave: 1.2,
 }
 
 const POWER_FACTOR = 0.8
-const SURGE_HEADROOM = 1.2
+const CONTINUOUS_MARGIN = 1.15
 const INVERTER_EFFICIENCY = 0.85
 const USABLE_DOD = 0.8
 const BATTERY_VOLTAGE = 12
 const STANDARD_AH = [100, 120, 135, 150, 165, 180, 200, 220]
 const MAX_STRINGS = 2
+const CUSTOM_KEY_PREFIX = 'custom:'
+
+export function isCustomApplianceKey(key: string): boolean {
+  return key.startsWith(CUSTOM_KEY_PREFIX)
+}
+
+export function makeCustomApplianceKey(): string {
+  return `${CUSTOM_KEY_PREFIX}${Date.now().toString(36)}`
+}
 
 /** Lead-acid delivers less than its C20 rating when discharged quickly. */
 function rateFactor(hours: number): number {
@@ -114,12 +154,37 @@ function roundUpToStandardAh(ah: number): number | null {
   return STANDARD_AH.find((s) => s >= ah) ?? null
 }
 
+function resolveLine(
+  selection: ApplianceSelection,
+  catalog: ApplianceDef[]
+): { key: string; name: string; emoji: string; iconUrl?: string | null; watts: number; count: number } | null {
+  if (selection.count <= 0) return null
+  if (isCustomApplianceKey(selection.key)) {
+    const watts = Math.min(5000, Math.max(1, Math.floor(Number(selection.watts) || 0)))
+    const name = String(selection.name || 'Custom').trim().slice(0, 40) || 'Custom'
+    if (!watts) return null
+    return { key: selection.key, name, emoji: '🔌', watts, count: selection.count }
+  }
+  const a = catalog.find((x) => x.key === selection.key)
+  if (!a) return null
+  return {
+    key: a.key,
+    name: a.name,
+    emoji: a.emoji,
+    iconUrl: a.iconUrl,
+    watts: a.watts,
+    count: selection.count,
+  }
+}
+
 export function computeConnectedWatts(
   selections: ApplianceSelection[],
   catalog: ApplianceDef[]
 ): number {
-  const byKey = new Map(catalog.map((a) => [a.key, a]))
-  return selections.reduce((sum, s) => sum + (byKey.get(s.key)?.watts ?? 0) * s.count, 0)
+  return selections.reduce((sum, s) => {
+    const line = resolveLine(s, catalog)
+    return sum + (line ? line.watts * line.count : 0)
+  }, 0)
 }
 
 export function recommendBackupPlan(input: {
@@ -129,23 +194,24 @@ export function recommendBackupPlan(input: {
   catalog: ApplianceDef[]
 }): BackupPlan {
   const { useCase, backupHours, catalog } = input
-  const byKey = new Map(catalog.map((a) => [a.key, a]))
   const lines = input.selections
-    .filter((s) => s.count > 0 && byKey.has(s.key))
-    .map((s) => {
-      const a = byKey.get(s.key)!
-      return { key: a.key, name: a.name, emoji: a.emoji, watts: a.watts, count: s.count }
-    })
+    .map((s) => resolveLine(s, catalog))
+    .filter((l): l is NonNullable<typeof l> => Boolean(l))
 
   const connectedWatts = lines.reduce((sum, l) => sum + l.watts * l.count, 0)
   const runningWatts = Math.round(
     lines.reduce((sum, l) => sum + l.watts * l.count * (DUTY_CYCLE[l.key] ?? 1), 0)
   )
+  const peakWatts = Math.round(
+    lines.reduce((sum, l) => sum + l.watts * l.count * (SURGE_FACTOR[l.key] ?? 1), 0)
+  )
   const energyWh = Math.round(runningWatts * backupHours)
 
   const systemType = systemTypeFor(useCase)
   const models = systemType === 'online_ups' ? ONLINE_UPS_MODELS : INVERTER_MODELS
-  const requiredVa = Math.ceil((connectedWatts / POWER_FACTOR) * SURGE_HEADROOM)
+  const continuousVa = Math.ceil((connectedWatts / POWER_FACTOR) * CONTINUOUS_MARGIN)
+  const surgeVa = Math.ceil(peakWatts / POWER_FACTOR)
+  const requiredVa = Math.max(continuousVa, surgeVa)
   const usable = INVERTER_EFFICIENCY * USABLE_DOD * rateFactor(backupHours)
   const ahAt = (volts: number) => energyWh / (volts * usable)
 
@@ -179,6 +245,7 @@ export function recommendBackupPlan(input: {
   const estimatedBackupHours =
     runningWatts > 0 ? Math.round((usableWh / runningWatts) * 10) / 10 : 0
 
+  const hasMotorLoad = lines.some((l) => (SURGE_FACTOR[l.key] ?? 1) > 1.2)
   const notes: string[] = []
   if (systemType === 'online_ups') {
     notes.push('Online UPS gives zero changeover time, which is safe for computers and billing systems.')
@@ -188,6 +255,8 @@ export function recommendBackupPlan(input: {
   }
   if (lines.some((l) => l.key === 'ac')) {
     notes.push('ACs draw a heavy start-up current. Our team will confirm compatibility at site.')
+  } else if (hasMotorLoad) {
+    notes.push('We sized the inverter for motor start-up (fridge, pump, fans) so it does not trip on restart.')
   }
   if (strings > 1) {
     notes.push('Your backup needs two battery banks in parallel for the hours selected.')
@@ -202,6 +271,7 @@ export function recommendBackupPlan(input: {
     backupHours,
     connectedWatts,
     runningWatts,
+    peakWatts,
     energyWh,
     inverterVa: chosen.va,
     bankVoltage,

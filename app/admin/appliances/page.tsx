@@ -9,6 +9,7 @@ export type Appliance = {
   name: string
   watts: number
   emoji: string
+  iconUrl: string | null
   showInVisual: boolean
   order: number
 }
@@ -25,6 +26,7 @@ export default async function AppliancesPage() {
     name: r.name,
     watts: r.watts,
     emoji: r.emoji || '📦',
+    iconUrl: r.icon_url || null,
     showInVisual: r.show_in_visual !== false,
     order: r.order ?? 0,
   }))
@@ -33,7 +35,7 @@ export default async function AppliancesPage() {
     <div className="min-h-screen">
       <AdminPageHeader
         title="Appliances"
-        description="Manage appliances for the power backup load calculator."
+        description="Manage appliances, wattages, and icons for the power backup load calculator."
       />
       <div className="p-8">
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">

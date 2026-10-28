@@ -1,7 +1,7 @@
 /**
- * Send lead data to a single Google Sheet via Google Apps Script Web App.
- * All lead types (contact, enterprise, battery_finder, ups_proposal, solar, etc.)
- * go to one sheet with a "Source" column and flexible attribution columns.
+ * Send lead data to Google Sheets via Google Apps Script Web App.
+ * Most leads go to the "Leads" tab. Backup calculator leads go to a
+ * separate "Power Backup Calculator" tab in the same spreadsheet.
  */
 
 export type LeadSource =
@@ -11,6 +11,7 @@ export type LeadSource =
   | 'ups_proposal'
   | 'solar_enquiry'
   | 'power_backup_wizard'
+  | 'backup_calculator'
   | 'general'
 
 export type LeadPayload = {
@@ -46,7 +47,28 @@ export type LeadPayload = {
   extra?: string
 }
 
-/** Flatten lead to row for Google Sheet - single tab with all attribution columns */
+export type BackupCalculatorSheetPayload = {
+  timestamp?: string
+  name?: string
+  phone: string
+  useCase: string
+  backupHours: number
+  connectedWatts: number
+  runningWatts: number
+  peakWatts?: number
+  systemType: string
+  inverterVa: number
+  batteryAh: number
+  totalBatteries: number
+  bankVoltage: number
+  estimatedBackupHours: number
+  needsSurvey: boolean
+  appliancesSummary: string
+  notes?: string
+  extra?: string
+}
+
+/** Flatten lead to row for the main Leads sheet */
 function leadToRow(payload: LeadPayload): string[] {
   const ts = payload.timestamp || new Date().toISOString()
   return [
@@ -71,6 +93,30 @@ function leadToRow(payload: LeadPayload): string[] {
     payload.roofType || '',
     payload.roofArea || '',
     payload.monthlyBill || '',
+    payload.extra || '',
+  ]
+}
+
+function backupCalculatorToRow(payload: BackupCalculatorSheetPayload): string[] {
+  const ts = payload.timestamp || new Date().toISOString()
+  return [
+    ts,
+    payload.name || '',
+    payload.phone || '',
+    payload.useCase || '',
+    String(payload.backupHours ?? ''),
+    String(payload.connectedWatts ?? ''),
+    String(payload.runningWatts ?? ''),
+    String(payload.peakWatts ?? ''),
+    payload.systemType || '',
+    String(payload.inverterVa ?? ''),
+    String(payload.batteryAh ?? ''),
+    String(payload.totalBatteries ?? ''),
+    String(payload.bankVoltage ?? ''),
+    String(payload.estimatedBackupHours ?? ''),
+    payload.needsSurvey ? 'Yes' : 'No',
+    payload.appliancesSummary || '',
+    payload.notes || '',
     payload.extra || '',
   ]
 }
@@ -101,25 +147,37 @@ export const LEADS_HEADERS = [
   'Extra',
 ]
 
-export async function sendLeadToGoogleSheets(payload: LeadPayload): Promise<boolean> {
+export const BACKUP_CALC_HEADERS = [
+  'Timestamp',
+  'Name',
+  'Phone',
+  'Use Case',
+  'Backup Hours',
+  'Connected Load (W)',
+  'Running Load (W)',
+  'Peak / Surge (W)',
+  'System Type',
+  'Inverter VA',
+  'Battery Ah',
+  'Battery Count',
+  'Bank Voltage',
+  'Estimated Hours',
+  'Needs Survey',
+  'Appliances',
+  'Notes',
+  'Extra',
+]
+
+async function postToSheets(body: Record<string, unknown>): Promise<boolean> {
   const url = process.env.GOOGLE_SHEETS_WEB_APP_URL
-  if (!url || url === '') {
-    return false
-  }
+  if (!url) return false
 
   try {
-    const row = leadToRow(payload)
     const securityKey = process.env.GOOGLE_SHEETS_SECURITY_KEY
-
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        key: securityKey,
-        action: 'append_lead',
-        row,
-        source: payload.source,
-      }),
+      body: JSON.stringify({ key: securityKey, ...body }),
     })
 
     if (!res.ok) {
@@ -138,4 +196,26 @@ export async function sendLeadToGoogleSheets(payload: LeadPayload): Promise<bool
     console.error('Google Sheets lead error:', err)
     return false
   }
+}
+
+export async function sendLeadToGoogleSheets(payload: LeadPayload): Promise<boolean> {
+  return postToSheets({
+    action: 'append_lead',
+    row: leadToRow(payload),
+    source: payload.source,
+  })
+}
+
+/** Append a row to the Power Backup Calculator tab in the same spreadsheet. */
+export async function sendBackupCalculatorToGoogleSheets(
+  payload: BackupCalculatorSheetPayload
+): Promise<boolean> {
+  const tab =
+    process.env.GOOGLE_SHEETS_BACKUP_CALC_TAB?.trim() || 'Power Backup Calculator'
+  return postToSheets({
+    action: 'append_backup_calculator',
+    sheetName: tab,
+    row: backupCalculatorToRow(payload),
+    source: 'backup_calculator',
+  })
 }

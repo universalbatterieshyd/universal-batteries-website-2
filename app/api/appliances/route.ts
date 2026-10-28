@@ -1,10 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+function mapAppliance(data: {
+  id: string
+  key: string
+  name: string
+  watts: number
+  emoji: string | null
+  icon_url: string | null
+  show_in_visual: boolean | null
+  order: number | null
+}) {
+  return {
+    id: data.id,
+    key: data.key,
+    name: data.name,
+    watts: data.watts,
+    emoji: data.emoji,
+    iconUrl: data.icon_url,
+    showInVisual: data.show_in_visual,
+    order: data.order,
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { key, name, watts, emoji, showInVisual, order } = body
+    const { key, name, watts, emoji, iconUrl, showInVisual, order } = body
 
     if (!key || !name || watts == null) {
       return NextResponse.json(
@@ -20,6 +42,7 @@ export async function POST(request: NextRequest) {
         name,
         watts: Number(watts),
         emoji: emoji || '📦',
+        icon_url: iconUrl || null,
         show_in_visual: showInVisual !== false,
         order: order ?? 0,
       })
@@ -31,15 +54,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
 
-    return NextResponse.json({
-      id: data.id,
-      key: data.key,
-      name: data.name,
-      watts: data.watts,
-      emoji: data.emoji,
-      showInVisual: data.show_in_visual,
-      order: data.order,
-    })
+    return NextResponse.json(mapAppliance(data))
   } catch (err) {
     console.error('Appliance create error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -49,7 +64,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   const { data, error } = await supabase
     .from('appliance')
-    .select('id, key, name, watts, emoji, show_in_visual, order')
+    .select('id, key, name, watts, emoji, icon_url, show_in_visual, order')
     .order('order', { ascending: true })
 
   if (error) {

@@ -30,12 +30,15 @@ import {
   DEFAULT_HOURS,
   USE_CASE_PRESETS,
   computeConnectedWatts,
+  makeCustomApplianceKey,
   type ApplianceDef,
+  type ApplianceSelection,
   type BackupPlan,
   type UseCase,
 } from '@/lib/backup-calculator/sizing'
 
 type Step = 'place' | 'load' | 'hours' | 'phone' | 'otp' | 'result'
+type CustomAppliance = { key: string; name: string; watts: number; count: number }
 
 const STEPS: Step[] = ['place', 'load', 'hours', 'phone', 'otp', 'result']
 const PROGRESS_LABELS = ['Place', 'Appliances', 'Backup', 'Verify']
@@ -72,6 +75,10 @@ export function BackupCalculator() {
   const [catalog, setCatalog] = useState<ApplianceDef[]>(DEFAULT_APPLIANCES)
   const [useCase, setUseCase] = useState<UseCase>('home')
   const [counts, setCounts] = useState<Record<string, number>>({})
+  const [customs, setCustoms] = useState<CustomAppliance[]>([])
+  const [customName, setCustomName] = useState('')
+  const [customWatts, setCustomWatts] = useState('')
+  const [showCustomForm, setShowCustomForm] = useState(false)
   const [hours, setHours] = useState<number>(2)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -86,10 +93,18 @@ export function BackupCalculator() {
   useEffect(() => {
     fetch('/api/appliances')
       .then((r) => (r.ok ? r.json() : []))
-      .then((rows: { key: string; name: string; watts: number; emoji?: string; show_in_visual?: boolean }[]) => {
+      .then((rows: { key: string; name: string; watts: number; emoji?: string; icon_url?: string | null; show_in_visual?: boolean }[]) => {
         const visible = rows.filter((r) => r.show_in_visual !== false)
         if (visible.length) {
-          setCatalog(visible.map((r) => ({ key: r.key, name: r.name, watts: Number(r.watts), emoji: r.emoji || '🔌' })))
+          setCatalog(
+            visible.map((r) => ({
+              key: r.key,
+              name: r.name,
+              watts: Number(r.watts),
+              emoji: r.emoji || '🔌',
+              iconUrl: r.icon_url || null,
+            }))
+          )
         }
       })
       .catch(() => {})
@@ -101,10 +116,15 @@ export function BackupCalculator() {
     return () => clearTimeout(t)
   }, [resendIn])
 
-  const selections = useMemo(
-    () => Object.entries(counts).filter(([, c]) => c > 0).map(([key, count]) => ({ key, count })),
-    [counts]
-  )
+  const selections = useMemo((): ApplianceSelection[] => {
+    const fromCatalog = Object.entries(counts)
+      .filter(([, c]) => c > 0)
+      .map(([key, count]) => ({ key, count }))
+    const fromCustom = customs
+      .filter((c) => c.count > 0 && c.watts > 0)
+      .map((c) => ({ key: c.key, count: c.count, name: c.name, watts: c.watts }))
+    return [...fromCatalog, ...fromCustom]
+  }, [counts, customs])
   const connectedWatts = useMemo(() => computeConnectedWatts(selections, catalog), [selections, catalog])
   const applianceCount = selections.reduce((s, x) => s + x.count, 0)
 
@@ -123,12 +143,35 @@ export function BackupCalculator() {
     setUseCase(id)
     const keys = new Set(catalog.map((a) => a.key))
     setCounts(Object.fromEntries(Object.entries(USE_CASE_PRESETS[id]).filter(([k]) => keys.has(k))))
+    setCustoms([])
+    setShowCustomForm(false)
     setHours(DEFAULT_HOURS[id])
     go('load')
   }
 
   const bump = (key: string, delta: number) =>
     setCounts((c) => ({ ...c, [key]: Math.min(50, Math.max(0, (c[key] || 0) + delta)) }))
+
+  const bumpCustom = (key: string, delta: number) =>
+    setCustoms((list) =>
+      list
+        .map((c) => (c.key === key ? { ...c, count: Math.min(50, Math.max(0, c.count + delta)) } : c))
+        .filter((c) => c.count > 0)
+    )
+
+  const addCustomAppliance = () => {
+    const watts = Math.min(5000, Math.max(1, Math.floor(Number(customWatts) || 0)))
+    const name = customName.trim().slice(0, 40)
+    if (!name || !watts) {
+      setError('Enter a name and wattage for your appliance')
+      return
+    }
+    setError('')
+    setCustoms((list) => [...list, { key: makeCustomApplianceKey(), name, watts, count: 1 }])
+    setCustomName('')
+    setCustomWatts('')
+    setShowCustomForm(false)
+  }
 
   const fetchPlan = useCallback(async () => {
     const res = await fetch('/api/backup-calculator/proposal', {
@@ -319,7 +362,7 @@ export function BackupCalculator() {
                             className="flex w-full items-center gap-2.5 text-left active:scale-[0.98]"
                             aria-label={`Add ${a.name}`}
                           >
-                            <span className="text-2xl leading-none">{a.emoji}</span>
+                            <ApplianceIcon emoji={a.emoji} iconUrl={a.iconUrl} />
                             <span className="min-w-0">
                               <span className="block truncate text-sm font-semibold text-slate-900 dark:text-white">{a.name}</span>
                               <span className="block text-xs text-slate-500">{a.watts} W</span>
@@ -355,6 +398,96 @@ export function BackupCalculator() {
                         </div>
                       )
                     })}
+
+                    {customs.map((c) => (
+                      <div
+                        key={c.key}
+                        className="relative rounded-2xl border border-[#004C8F] bg-[#004C8F]/[0.04] p-3 ring-1 ring-[#004C8F]/30 dark:bg-sky-500/10"
+                      >
+                        <div className="flex w-full items-center gap-2.5 text-left">
+                          <ApplianceIcon emoji="🔌" />
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-semibold text-slate-900 dark:text-white">{c.name}</span>
+                            <span className="block text-xs text-slate-500">{c.watts} W · custom</span>
+                          </span>
+                        </div>
+                        <div className="mt-2.5 flex items-center justify-between rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+                          <button
+                            type="button"
+                            onClick={() => bumpCustom(c.key, -1)}
+                            aria-label={`Remove ${c.name}`}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-slate-700 shadow-sm transition active:scale-90 dark:bg-slate-700 dark:text-white"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                          <span className="w-8 text-center text-base font-bold tabular-nums text-slate-900 dark:text-white">
+                            {c.count}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => bumpCustom(c.key, 1)}
+                            aria-label={`Add ${c.name}`}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#004C8F] text-white shadow-sm transition active:scale-90"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="col-span-2 sm:col-span-3">
+                      {showCustomForm ? (
+                        <div className="rounded-2xl border border-dashed border-[#004C8F]/40 bg-slate-50 p-4 dark:bg-slate-900">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">Add a custom appliance</p>
+                          <p className="mt-0.5 text-xs text-slate-500">Use the wattage printed on the label or adapter.</p>
+                          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_120px_auto]">
+                            <input
+                              type="text"
+                              value={customName}
+                              onChange={(e) => setCustomName(e.target.value)}
+                              placeholder="e.g. Desktop PC"
+                              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#004C8F] dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                            />
+                            <input
+                              type="number"
+                              inputMode="numeric"
+                              min={1}
+                              max={5000}
+                              value={customWatts}
+                              onChange={(e) => setCustomWatts(e.target.value)}
+                              placeholder="Watts"
+                              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#004C8F] dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                            />
+                            <button
+                              type="button"
+                              onClick={addCustomAppliance}
+                              className="h-11 rounded-xl bg-[#004C8F] px-4 text-sm font-semibold text-white"
+                            >
+                              Add
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowCustomForm(false)
+                              setError('')
+                            }}
+                            className="mt-2 text-xs font-medium text-slate-500"
+                          >
+                            Cancel
+                          </button>
+                          {error && step === 'load' && <p className="mt-2 text-sm text-[#E31B23]">{error}</p>}
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setShowCustomForm(true)}
+                          className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 text-sm font-semibold text-[#004C8F] transition hover:border-[#004C8F]/50 hover:bg-[#004C8F]/5 dark:border-slate-700 dark:text-sky-400"
+                        >
+                          <Plus className="h-4 w-4" /> Add custom appliance
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <StickyAction
                     disabled={connectedWatts === 0}
@@ -521,6 +654,25 @@ export function BackupCalculator() {
   )
 }
 
+function ApplianceIcon({
+  emoji,
+  iconUrl,
+  size = 'md',
+}: {
+  emoji: string
+  iconUrl?: string | null
+  size?: 'sm' | 'md'
+}) {
+  const box = size === 'sm' ? 'h-5 w-5 text-sm' : 'h-8 w-8 text-2xl'
+  if (iconUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={iconUrl} alt="" className={cn(box, 'shrink-0 rounded-md object-contain')} />
+    )
+  }
+  return <span className={cn(box, 'inline-flex shrink-0 items-center justify-center leading-none')}>{emoji}</span>
+}
+
 function LoadMeter({ watts, count }: { watts: number; count: number }) {
   const pct = Math.min(100, (watts / METER_MAX_WATTS) * 100)
   const tone = watts > 2500 ? 'from-amber-500 to-[#E31B23]' : 'from-[#004C8F] to-sky-400'
@@ -668,7 +820,7 @@ function PlanResult({ plan, name, onRestart }: { plan: BackupPlan; name: string;
                 key={l.key}
                 className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
               >
-                <span>{l.emoji}</span> {l.count} × {l.name}
+                <ApplianceIcon emoji={l.emoji} iconUrl={l.iconUrl} size="sm" /> {l.count} × {l.name}
               </span>
             ))}
           </div>
