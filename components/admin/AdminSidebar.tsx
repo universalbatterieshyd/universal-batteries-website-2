@@ -23,6 +23,7 @@ import {
   Headphones,
   Zap,
   Car,
+  IdCard,
 } from 'lucide-react'
 
 const navItems = [
@@ -38,6 +39,7 @@ const navItems = [
   { href: '/admin/leads', label: 'Leads', icon: UserPlus },
   { href: '/admin/tickets', label: 'Support Tickets', icon: Headphones },
   { href: '/admin/branches', label: 'Branches', icon: MapPin },
+  { href: '/admin/company-profile', label: 'Company Profile', icon: IdCard },
   { href: '/admin/testimonials', label: 'Testimonials', icon: Star },
   { href: '/admin/inquiries', label: 'Inquiries', icon: Inbox },
   { href: '/admin/settings', label: 'Settings', icon: Settings },

@@ -6,7 +6,7 @@ import { Upload } from 'lucide-react'
 type ImageUploadFieldProps = {
   value: string
   onChange: (url: string) => void
-  type: 'logo' | 'favicon' | 'banner' | 'hero' | 'chip' | 'category' | 'article' | 'appliance'
+  type: 'logo' | 'favicon' | 'banner' | 'hero' | 'chip' | 'category' | 'article' | 'appliance' | 'brand'
   label?: string
   placeholder?: string
   previewSize?: 'sm' | 'md' | 'lg' | 'tall'
