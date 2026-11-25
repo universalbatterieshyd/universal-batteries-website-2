@@ -1,6 +1,5 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
-import ProductCategories from "@/components/ProductCategories";
 import WhyChooseUs from "@/components/WhyChooseUs";
 import AboutUs from "@/components/AboutUs";
 import Testimonials from "@/components/Testimonials";
@@ -12,11 +11,23 @@ import FAQSection from "@/components/sections/FAQSection";
 import CTABannerSection from "@/components/sections/CTABannerSection";
 import { supabase } from "@/lib/supabase";
 
-type SectionProps = { heroData?: unknown; config?: Record<string, unknown> | null };
+type HeroCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  icon?: string | null;
+  card_image_url?: string | null;
+};
+
+type SectionProps = {
+  heroData?: unknown;
+  categories?: HeroCategory[];
+  config?: Record<string, unknown> | null;
+};
 
 const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   hero: Hero as React.ComponentType<SectionProps>,
-  product_categories: ProductCategories as React.ComponentType<SectionProps>,
   why_choose_us: WhyChooseUs as React.ComponentType<SectionProps>,
   about_us: AboutUs as React.ComponentType<SectionProps>,
   testimonials: Testimonials as React.ComponentType<SectionProps>,
@@ -27,9 +38,9 @@ const SECTION_COMPONENTS: Record<string, React.ComponentType<SectionProps>> = {
   cta_banner: CTABannerSection as React.ComponentType<SectionProps>,
 };
 
+/** product_categories removed — MECE category cards live in the hero */
 const DEFAULT_SECTION_ORDER = [
   "hero",
-  "product_categories",
   "why_choose_us",
   "about_us",
   "testimonials",
@@ -40,7 +51,7 @@ export default async function HomePage() {
   let heroData: unknown = null;
   let sectionRows: { id: string; section_key: string; is_visible: boolean; config?: Record<string, unknown> | null }[] = [];
 
-  let categories: { id: string; name: string; slug: string; description?: string | null; icon?: string | null }[] = [];
+  let categories: HeroCategory[] = [];
   let whyChooseUsItems: { title: string; description: string; icon: string }[] = [];
   let aboutUsBlocks: { headline?: string; subheadline?: string; story?: string; imageUrl?: string; imageCaption?: string }[] = [];
 
@@ -73,7 +84,7 @@ export default async function HomePage() {
     ]);
     heroData = heroRes.data ?? null;
     sectionRows = (sectionsRes.data ?? []).filter((s) => s.is_visible);
-    categories = (categoriesRes.data ?? []) as { id: string; name: string; slug: string; description?: string | null; icon?: string | null; card_image_url?: string | null }[];
+    categories = (categoriesRes.data ?? []) as HeroCategory[];
     whyChooseUsItems = (whyRes.data ?? []).map((r) => ({
       title: r.title,
       description: r.description,
@@ -91,14 +102,15 @@ export default async function HomePage() {
   }
 
   const visibleSections =
-    sectionRows.length > 0
+    (sectionRows.length > 0
       ? sectionRows
       : DEFAULT_SECTION_ORDER.map((key) => ({
           id: key,
           section_key: key,
           is_visible: true,
-          config: null,
-        }));
+          config: null as Record<string, unknown> | null,
+        }))
+    ).filter((s) => s.section_key !== "product_categories");
 
   return (
     <div className="min-h-screen bg-background">
@@ -109,18 +121,17 @@ export default async function HomePage() {
           const Component = SECTION_COMPONENTS[section_key];
           if (!Component) return null;
           const enrichedConfig =
-            section_key === "product_categories"
-              ? { ...(config ?? {}), categories }
-              : section_key === "why_choose_us"
-                ? { ...(config ?? {}), items: whyChooseUsItems }
-                : section_key === "about_us"
-                  ? { ...(config ?? {}), blocks: aboutUsBlocks }
-                  : config ?? null;
+            section_key === "why_choose_us"
+              ? { ...(config ?? {}), items: whyChooseUsItems }
+              : section_key === "about_us"
+                ? { ...(config ?? {}), blocks: aboutUsBlocks }
+                : config ?? null;
 
           return (
             <Component
               key={id}
               heroData={section_key === "hero" ? heroData : undefined}
+              categories={section_key === "hero" ? categories : undefined}
               config={section_key !== "hero" ? enrichedConfig : undefined}
             />
           );

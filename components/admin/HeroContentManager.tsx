@@ -1,21 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { ImageUploadField } from './ImageUploadField'
-
-type HeroChip = {
-  label: string
-  href: string
-  icon: string
-  image_url?: string | null
-}
-
-const DEFAULT_CTA_CHIPS: HeroChip[] = [
-  { label: "Need home backup or solar?", href: "/solutions/home-backup", icon: "Home" },
-  { label: "Running an office, clinic or datacentre?", href: "/solutions/office-ups", icon: "Building2" },
-  { label: "Looking for a battery replacement?", href: "/solutions/home-backup#battery-finder", icon: "Battery" },
-  { label: "View Products", href: "/#products", icon: "Package" },
-]
 
 type HeroContent = {
   id: string
@@ -27,7 +14,6 @@ type HeroContent = {
   cta_secondary_link: string | null
   background_image_url: string | null
   tagline: string | null
-  cta_chips?: HeroChip[] | null
   is_active: boolean
   order: number
 }
@@ -63,7 +49,6 @@ export function HeroContentManager({ initialData }: { initialData: HeroContent |
         ctaSecondaryLink: hero.cta_secondary_link,
         backgroundImageUrl: hero.background_image_url,
         tagline: hero.tagline,
-        ctaChips: hero.cta_chips ?? DEFAULT_CTA_CHIPS,
         isActive: hero.is_active,
       }),
     })
@@ -109,53 +94,19 @@ export function HeroContentManager({ initialData }: { initialData: HeroContent |
             className="w-full px-4 py-3 border border-gray-300 rounded-lg"
           />
         </div>
-        <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
-          Note: Contact details (WhatsApp, phone) are only shown in the Footer and Contact Us section. Hero CTAs should link to internal pages.
+
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 space-y-2">
+          <p className="font-medium text-slate-900">Hero category cards</p>
+          <p>
+            The homepage hero shows your top-level product categories as large image cards
+            (name + card image). Edit those under{' '}
+            <Link href="/admin/categories" className="text-primary font-medium underline-offset-2 hover:underline">
+              Admin → Categories
+            </Link>
+            .
+          </p>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Primary CTA Text</label>
-            <input
-              type="text"
-              value={hero.cta_primary_text || ''}
-              onChange={(e) => setHero({ ...hero, cta_primary_text: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-              placeholder="View Products"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Primary CTA Link (internal)</label>
-            <input
-              type="text"
-              value={hero.cta_primary_link || ''}
-              onChange={(e) => setHero({ ...hero, cta_primary_link: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-              placeholder="#products or /categories/automotive"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Secondary CTA Text</label>
-            <input
-              type="text"
-              value={hero.cta_secondary_text || ''}
-              onChange={(e) => setHero({ ...hero, cta_secondary_text: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-              placeholder="Our Services"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Secondary CTA Link (internal)</label>
-            <input
-              type="text"
-              value={hero.cta_secondary_link || ''}
-              onChange={(e) => setHero({ ...hero, cta_secondary_link: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-              placeholder="#services or /about"
-            />
-          </div>
-        </div>
+
         <ImageUploadField
           label="Hero background image"
           value={hero.background_image_url || ''}
@@ -164,58 +115,6 @@ export function HeroContentManager({ initialData }: { initialData: HeroContent |
           placeholder="Upload or paste URL"
           previewSize="lg"
         />
-        <div className="border-t border-gray-200 pt-6">
-          <h3 className="text-base font-semibold text-gray-900 mb-2">Hero category chips</h3>
-          <p className="text-sm text-gray-600 mb-4">Optional background images (400×400px recommended). Leave empty for solid red.</p>
-          <div className="space-y-4">
-            {(hero.cta_chips ?? DEFAULT_CTA_CHIPS).map((chip, i) => {
-              const chips = hero.cta_chips ?? DEFAULT_CTA_CHIPS
-              const setChip = (updates: Partial<HeroChip>) => {
-                const next = [...chips]
-                next[i] = { ...next[i], ...updates }
-                setHero({ ...hero, cta_chips: next })
-              }
-              return (
-                <div key={i} className="rounded-lg border border-gray-200 p-4 bg-gray-50/50 space-y-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-medium text-gray-700">Chip {i + 1}</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Label</label>
-                      <input
-                        type="text"
-                        value={chip.label}
-                        onChange={(e) => setChip({ label: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Link</label>
-                      <input
-                        type="text"
-                        value={chip.href}
-                        onChange={(e) => setChip({ href: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                        placeholder="/solutions/home-backup"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Background image (400×400px)</label>
-                    <ImageUploadField
-                      value={chip.image_url || ''}
-                      onChange={(v) => setChip({ image_url: v })}
-                      type="chip"
-                      placeholder="Upload or paste URL"
-                      previewSize="md"
-                    />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
